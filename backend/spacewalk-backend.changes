@@ -1,3 +1,5 @@
+- remove code to handle tables used for forwarding registrations
+  to NCC.
 - Remove auditlog-keeper
 - update doc link to point to new documentation server
 
