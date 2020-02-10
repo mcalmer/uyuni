@@ -14,16 +14,16 @@
 create table
 suseOSTarget
 (
-    id            number        not null PRIMARY KEY,
-    os            varchar2(200) not null
+    id            NUMERIC        not null PRIMARY KEY,
+    os            VARCHAR(200) not null
                   CONSTRAINT suseostarget_os_uq UNIQUE,
-    target        varchar2(100) not null,
-    channel_arch_id  NUMBER
+    target        VARCHAR(100) not null,
+    channel_arch_id  NUMERIC
                   CONSTRAINT suse_ostarget_caid_fk
                   REFERENCES rhnChannelArch (id),
-    created   timestamp with local time zone
+    created   TIMESTAMPTZ
                   DEFAULT (current_timestamp) NOT NULL,
-    modified  timestamp with local time zone
+    modified  TIMESTAMPTZ
                   DEFAULT (current_timestamp) NOT NULL
 );
 

@@ -13,22 +13,22 @@
 create table
 suseServer
 (
-    rhn_server_id     number
+    rhn_server_id     NUMERIC
                       CONSTRAINT suseserver_rhns_id_fk
                       REFERENCES rhnServer (id)
                       ON DELETE CASCADE
                       PRIMARY KEY,
-    guid              varchar2(256)
+    guid              VARCHAR(256)
                       CONSTRAINT suseserver_guid_uq UNIQUE,
-    secret            varchar2(256),
-    ostarget_id       number
+    secret            VARCHAR(256),
+    ostarget_id       NUMERIC
                       CONSTRAINT suseostarget_id_fk
                       REFERENCES suseOSTarget (id),
     ncc_sync_required CHAR(1) DEFAULT ('N') NOT NULL,
     ncc_reg_error     CHAR(1) DEFAULT ('N') NOT NULL,
-    created   timestamp with local time zone
+    created   TIMESTAMPTZ
                   DEFAULT (current_timestamp) NOT NULL,
-    modified  timestamp with local time zone
+    modified  TIMESTAMPTZ
                   DEFAULT (current_timestamp) NOT NULL
 );
 

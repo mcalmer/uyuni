@@ -13,8 +13,8 @@
 create table
 suseDelServer
 (
-    guid        varchar2(256),
-    created   timestamp with local time zone
+    guid        VARCHAR(256),
+    created   TIMESTAMPTZ
                   DEFAULT (current_timestamp) NOT NULL
 );
 
