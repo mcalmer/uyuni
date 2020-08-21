@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Spacewalk\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-23 10:26+0200\n"
+"POT-Creation-Date: 2020-08-21 10:51+0200\n"
 "PO-Revision-Date: 2018-03-16 10:53+0000\n"
 "Last-Translator: Copied by Zanata <copied-by-zanata@zanata.org>\n"
 "Language-Team: Czech (http://www.transifex.com/projects/p/fedora/language/"
@@ -24,24 +24,11 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 "X-Generator: Zanata 4.6.2\n"
 
-#: ../server/apacheAuth.py:66
-#, python-format
-msgid "incomplete proxy authentication token: %s"
-msgstr "Neúplný autentifikační token pro proxy: %s"
-
-#: ../server/apacheAuth.py:84
-#, python-format
-msgid "Sent proxy signature %s does not match ours %s."
-msgstr "Zaslaný podpis proxy %s neodpovídá našemu %s."
-
-#: ../server/apacheAuth.py:119
-msgid "declined proxy authentication"
-msgstr "zamítnutá proxy autentifikace"
-
-#: ../server/configFilesHandler.py:129 ../server/handlers/app/packages.py:192
+#: ../server/handlers/app/packages.py:192
 #: ../server/handlers/xmlrpc/registration.py:215
 #: ../server/handlers/xmlrpc/registration.py:1168
 #: ../server/handlers/xmlrpc/registration.py:1307
+#: ../server/configFilesHandler.py:129
 #, python-format
 msgid ""
 "\n"
@@ -65,16 +52,6 @@ msgstr "ISS je na tomto satelitu deaktivována."
 msgid "Server \"%s\" is not enabled for ISS."
 msgstr "Server \"%s\" nemá povolen ISS."
 
-#: ../server/handlers/xmlrpc/errata.py:64
-#, python-format
-msgid "Expected a package name, not: %s"
-msgstr "Očekávám jméno balíku, nikoliv \"%s\""
-
-#: ../server/handlers/xmlrpc/errata.py:115
-#, python-format
-msgid "Expected a package, not: %s"
-msgstr "Očekávám balík, nikoliv \"%s\""
-
 #: ../server/handlers/xmlrpc/proxy.py:65
 #, fuzzy, python-format
 msgid "Spacewalk Proxy service not enabled for server profile: \"%s\""
@@ -88,6 +65,21 @@ msgstr "Neplatný session key"
 msgid "This server ID no longer exists"
 msgstr "Toto ID serveru již neexistuje"
 
+#: ../server/handlers/xmlrpc/scap.py:104
+#, fuzzy
+msgid "Invalid system_id/action_id pair."
+msgstr "Neplatné přihlašovací údaje do systému."
+
+#: ../server/handlers/xmlrpc/errata.py:64
+#, python-format
+msgid "Expected a package name, not: %s"
+msgstr "Očekávám jméno balíku, nikoliv \"%s\""
+
+#: ../server/handlers/xmlrpc/errata.py:115
+#, python-format
+msgid "Expected a package, not: %s"
+msgstr "Očekávám balík, nikoliv \"%s\""
+
 #: ../server/handlers/xmlrpc/queue.py:433
 #, python-format
 msgid "Invalid action value type %s (%s)"
@@ -97,11 +89,6 @@ msgstr "Neplatná hodnota operace typu %s (%s)"
 #, python-format
 msgid "Action %s does not belong to server %s"
 msgstr "Operace %s nenáleží k serveru %s"
-
-#: ../server/handlers/xmlrpc/scap.py:104
-#, fuzzy
-msgid "Invalid system_id/action_id pair."
-msgstr "Neplatné přihlašovací údaje do systému."
 
 #: ../server/handlers/xmlrpc/up2date.py:233
 #, python-format
@@ -177,25 +164,6 @@ msgstr ""
 "\n"
 "                   Účet %s byl na tomto serveru deaktivován.\n"
 "                   Pro další pomoc kontaktujte správce své organizace."
-
-#: ../server/rhnHandler.py:62
-msgid "Please run rhn_register as root on this client"
-msgstr ""
-
-#: ../server/rhnHandler.py:75
-#, python-format
-msgid "Service not enabled for system profile: \"%s\""
-msgstr "Tato služba není aktivována pro systémový profil: \"%s\""
-
-#: ../server/rhnPackage.py:49 ../server/rhnPackage.py:87
-#: ../server/rhnPackage.py:107 ../server/rhnPackage.py:158
-#, python-format
-msgid "Invalid RPM package %s requested"
-msgstr "Byl vyžádán neplatný RPM balík %s"
-
-#: ../server/rhnPackage.py:112
-msgid "Package not found"
-msgstr "Balík nenalezen"
 
 #: ../server/rhnServer/server_class.py:97
 #, python-format
@@ -308,33 +276,14 @@ msgstr "uživatelské jméno by mělo mít alespoň %d znaků"
 msgid "Cannot register usernames ending with %s"
 msgstr "Nelze registrovat uživatelská jména končící na %s"
 
-#: ../server/apacheRequest.py:59
-#, python-format
-msgid "Invalid request received (%s)."
-msgstr "Neplatná žádost (%s)."
-
-#: ../server/apacheRequest.py:120
-#, python-format
-msgid ""
-"IMPORTANT MESSAGE FOLLOWS:\n"
-"%s"
+#: ../server/rhnHandler.py:62
+msgid "Please run rhn_register as root on this client"
 msgstr ""
-"DŮLEŽITÉ UPOZORNĚNÍ:\n"
-"%s"
 
-#: ../server/apacheRequest.py:149
+#: ../server/rhnHandler.py:75
 #, python-format
-msgid ""
-"While running '%s': caught\n"
-"%s : %s\n"
-msgstr ""
-"Při běhu '%s': zachyceno\n"
-"%s : %s\n"
-
-#: ../server/apacheRequest.py:606
-#, python-format
-msgid "Invalid URI %s"
-msgstr "Neplatné URI %s"
+msgid "Service not enabled for system profile: \"%s\""
+msgstr "Tato služba není aktivována pro systémový profil: \"%s\""
 
 #: ../server/rhnChannel.py:1992
 #, python-format
@@ -440,6 +389,58 @@ msgstr ""
 "na:\n"
 "\n"
 "  %(entitlement_url)s\n"
+
+#: ../server/apacheAuth.py:66
+#, python-format
+msgid "incomplete proxy authentication token: %s"
+msgstr "Neúplný autentifikační token pro proxy: %s"
+
+#: ../server/apacheAuth.py:84
+#, python-format
+msgid "Sent proxy signature %s does not match ours %s."
+msgstr "Zaslaný podpis proxy %s neodpovídá našemu %s."
+
+#: ../server/apacheAuth.py:119
+msgid "declined proxy authentication"
+msgstr "zamítnutá proxy autentifikace"
+
+#: ../server/rhnPackage.py:49 ../server/rhnPackage.py:87
+#: ../server/rhnPackage.py:107 ../server/rhnPackage.py:158
+#, python-format
+msgid "Invalid RPM package %s requested"
+msgstr "Byl vyžádán neplatný RPM balík %s"
+
+#: ../server/rhnPackage.py:112
+msgid "Package not found"
+msgstr "Balík nenalezen"
+
+#: ../server/apacheRequest.py:59
+#, python-format
+msgid "Invalid request received (%s)."
+msgstr "Neplatná žádost (%s)."
+
+#: ../server/apacheRequest.py:120
+#, python-format
+msgid ""
+"IMPORTANT MESSAGE FOLLOWS:\n"
+"%s"
+msgstr ""
+"DŮLEŽITÉ UPOZORNĚNÍ:\n"
+"%s"
+
+#: ../server/apacheRequest.py:149
+#, python-format
+msgid ""
+"While running '%s': caught\n"
+"%s : %s\n"
+msgstr ""
+"Při běhu '%s': zachyceno\n"
+"%s : %s\n"
+
+#: ../server/apacheRequest.py:606
+#, python-format
+msgid "Invalid URI %s"
+msgstr "Neplatné URI %s"
 
 #. 0-999: Red Hat client/client-like interaction errors:
 #: ../common/rhnException.py:53
@@ -1076,6 +1077,19 @@ msgstr ""
 msgid "format of %s should be at least YYYYMMDD.\n"
 msgstr ""
 
+#: ../satellite_tools/reposync.py:111 ../satellite_tools/satsync.py:439
+msgid "+++ sending log as an email +++"
+msgstr ""
+
+#: ../satellite_tools/reposync.py:114
+#, python-format
+msgid "%s sync. report from %s"
+msgstr ""
+
+#: ../satellite_tools/reposync.py:124 ../satellite_tools/satsync.py:449
+msgid "+++ email requested, but there is nothing to send +++"
+msgstr ""
+
 #: ../satellite_tools/messages.py:26
 #, python-format
 msgid ""
@@ -1250,35 +1264,6 @@ msgstr ""
 #: ../satellite_tools/messages.py:94
 #, python-format
 msgid "Imported kickstartable trees (%d)"
-msgstr ""
-
-#: ../satellite_tools/rhn_satellite_activate.py:198
-#, python-format
-msgid ""
-"\"%s\" (specified in commandline)\n"
-"could not be opened and read:\n"
-"%s"
-msgstr ""
-
-#: ../satellite_tools/rhn_satellite_activate.py:205
-#, python-format
-msgid ""
-"\"%s\" could not be opened\n"
-"and/or written to:\n"
-"%s"
-msgstr ""
-
-#: ../satellite_tools/reposync.py:109 ../satellite_tools/satsync.py:439
-msgid "+++ sending log as an email +++"
-msgstr ""
-
-#: ../satellite_tools/reposync.py:112
-#, python-format
-msgid "%s sync. report from %s"
-msgstr ""
-
-#: ../satellite_tools/reposync.py:122 ../satellite_tools/satsync.py:449
-msgid "+++ email requested, but there is nothing to send +++"
 msgstr ""
 
 #: ../satellite_tools/satsync.py:258
@@ -2019,4 +2004,20 @@ msgstr ""
 #: ../satellite_tools/satsync.py:2510
 #, python-format
 msgid "ERROR: unknown dump version, try one of %s"
+msgstr ""
+
+#: ../satellite_tools/rhn_satellite_activate.py:198
+#, python-format
+msgid ""
+"\"%s\" (specified in commandline)\n"
+"could not be opened and read:\n"
+"%s"
+msgstr ""
+
+#: ../satellite_tools/rhn_satellite_activate.py:205
+#, python-format
+msgid ""
+"\"%s\" could not be opened\n"
+"and/or written to:\n"
+"%s"
 msgstr ""
