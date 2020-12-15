@@ -2098,6 +2098,7 @@ class RepoSync(object):
         kwcache = {}
         susedata = repo.get_susedata()
         for package in susedata:
+            # susedata exists only for package type == rpm
             query = rhnSQL.prepare("""
                 SELECT p.id
                   FROM rhnPackage p
@@ -2105,7 +2106,7 @@ class RepoSync(object):
                   JOIN rhnChecksumView c ON p.checksum_id = c.id
                   JOIN rhnChannelPackage cp ON p.id = cp.package_id
                  WHERE pn.name = :name
-                   AND p.evr_id = LOOKUP_EVR(:epoch, :version, :release, (SELECT at.label FROM rhnArchType at JOIN rhnPackageArch pa ON pa.arch_type_id = at.id WHERE pa.id = p.package_arch_id))
+                   AND p.evr_id = LOOKUP_EVR(:epoch, :version, :release, 'rpm')
                    AND p.package_arch_id = LOOKUP_PACKAGE_ARCH(:arch)
                    AND cp.channel_id = :channel_id
                    AND c.checksum = :pkgid
