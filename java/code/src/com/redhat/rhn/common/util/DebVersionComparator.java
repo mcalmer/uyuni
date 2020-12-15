@@ -18,7 +18,6 @@ import java.util.Comparator;
 
 /**
  * DebVersionComparator
- * @version $Rev$
  */
 public class DebVersionComparator implements Comparator<String> {
 
