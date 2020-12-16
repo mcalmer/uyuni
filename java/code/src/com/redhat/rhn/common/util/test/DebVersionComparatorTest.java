@@ -107,7 +107,7 @@ public class DebVersionComparatorTest extends TestCase {
 
     private int testDebianVersionCompareInDatabase(String operand1, String operand2) {
         // test the stored function
-        CallableMode m = ModeFactory.getCallableMode("PackageEvr_queries", "debstrcmp");
+        CallableMode m = ModeFactory.getCallableMode("test_queries", "debstrcmp");
         Map inParams = new HashMap();
         Map outParams = new HashMap();
         outParams.put("compareResult", Types.INTEGER);
