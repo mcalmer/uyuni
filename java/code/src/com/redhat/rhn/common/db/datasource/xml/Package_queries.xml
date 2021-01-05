@@ -825,6 +825,33 @@ SELECT P.id, P.summary, PP.name as provider
   </query>
 </mode>
 
+<mode name="system_set_locked_packages"  class="com.redhat.rhn.frontend.dto.PackageListItem">
+  <query params="sid, aid">
+  SELECT DISTINCT
+    pn.id || '|' || pe.id || '|' || pa.id AS id_combo,
+    pn.name AS name,
+    pe.version AS version,
+    pe.release AS release,
+    pe.epoch AS epoch,
+    pa.label AS arch,
+  FROM rhnActionPackage ap
+    JOIN rhnLockedPackages lp
+      ON ap.name_id = lp.name_id AND
+         ap.evr_id  = lp.evr_id AND
+         ap.package_arch_id = lp.arch_id
+    LEFT JOIN rhnPackageArch pa
+      ON ap.package_arch_id = pa.id,
+         rhnPackageName pn,
+         rhnPackageEVR pe
+    WHERE
+      ap.action_id = :aid AND
+      ap.evr_id    = pe.id AND
+      ap.name_id   = pn.id AND
+      lp.server_id = :sid AND
+      (lp.pending IS NULL OR lp.pending = 'L')
+      order by id_combo
+  </query>
+</mode>
 
 <mode name="system_locked_packages"  class="com.redhat.rhn.frontend.dto.PackageListItem">
   <query params="sid">

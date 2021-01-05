@@ -633,6 +633,24 @@ public class PackageManager extends BaseManager {
     }
 
     /**
+     * Get the list of packages which should be locked on a particular system.
+     *
+     * @param sid System ID.
+     * @param aid Action ID.
+     * @param pc Page control object.
+     * @return  DataResult containing locked packages data.
+     */
+    public static DataResult<PackageListItem> systemSetLockedPackages(
+            Long sid, Long aid, PageControl pc) {
+        SelectMode m = ModeFactory.getMode("Package_queries", "system_set_locked_packages");
+        Map params = new HashMap();
+        params.put("sid", sid);
+        params.put("aid", aid);
+        Map elabParams = new HashMap();
+        return makeDataResult(params, elabParams, pc, m);
+    }
+
+    /**
      * Lock packages.
      * If the package object has lock pending, then the package will be only half-locked.
      *
