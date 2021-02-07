@@ -94,6 +94,7 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -438,7 +439,7 @@ public class StatesAPI {
                     .orElse(null);
 
             Set<Action> actions = ActionChainManager.scheduleApplyStates(user, minionIds,
-                    Optional.of(json.isTest()), getScheduleDate(json), actionChain);
+                    new ArrayList<String>(), json.isTest(), getScheduleDate(json), actionChain);
 
             if (actionChain != null) {
                 return GSON.toJson(actionChain.getId());

@@ -489,8 +489,8 @@ public class SaltServerActionServiceTest extends JMockBaseTestCaseWithUser {
                 allServerIds, earliestAction, actionChain);
 
         Set<Action> highstateActions = ActionChainManager.scheduleApplyStates(user,
-                Arrays.asList(minion1.getId(), minion2.getId()), Optional.empty(),
-                earliestAction, actionChain);
+                Arrays.asList(minion1.getId(), minion2.getId()), new ArrayList<String>(),
+                false, earliestAction, actionChain);
 
         context().checking(new Expectations() { {
             allowing(taskomaticMock).scheduleActionChainExecution(with(any(ActionChain.class)));

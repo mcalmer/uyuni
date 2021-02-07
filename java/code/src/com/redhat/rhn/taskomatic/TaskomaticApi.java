@@ -301,7 +301,7 @@ public class TaskomaticApi {
     public Date scheduleSatBunch(User user, String jobLabel, String bunchName, String cron)
     throws TaskomaticApiException {
         ensureSatAdminRole(user);
-        return doScheduleSatBunch(user, jobLabel, bunchName, cron);
+        return doScheduleSatBunch(user, jobLabel, bunchName, cron, new HashMap<>());
     }
 
     /**
@@ -316,19 +316,20 @@ public class TaskomaticApi {
         if (!action.canAccess(user)) {
             throw new PermissionException(String.format("User '%s' can't schedule action '$s'", user, action));
         }
-
+        Map<String, Object> data = new HashMap<>();
+        data.put("states", action.getStates());
         doScheduleSatBunch(user, action.computeTaskoScheduleName(), "recurring-state-apply-bunch",
-                action.getCronExpr());
+                action.getCronExpr(), data);
     }
 
     //helper method for scheduling bunch without permission checking
-    private Date doScheduleSatBunch(User user, String jobLabel, String bunchName, String cron)
-            throws TaskomaticApiException {
+    private Date doScheduleSatBunch(User user, String jobLabel, String bunchName, String cron,
+            Map<String, Object> data) throws TaskomaticApiException {
         Map task = findSatScheduleByBunchAndLabel(bunchName, jobLabel, user);
         if (task != null) {
             doUnscheduleSatTask(jobLabel);
         }
-        return (Date) invoke("tasko.scheduleSatBunch", bunchName, jobLabel , cron, new HashMap());
+        return (Date) invoke("tasko.scheduleSatBunch", bunchName, jobLabel , cron, data);
     }
 
     /**

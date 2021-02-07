@@ -309,6 +309,7 @@ public class ActionChainManager {
      * Schedules the application of states to minions
      * @param user the requesting user
      * @param sids list of system IDs
+     * @param states list of States. Apply Highstate when empty.
      * @param test for test mode
      * @param earliest earliest execution date
      * @param actionChain Action Chain instance
@@ -316,9 +317,8 @@ public class ActionChainManager {
      * @throws TaskomaticApiException if there was a Taskomatic error
      * (typically: Taskomatic is down)
      */
-    public static Set<Action> scheduleApplyStates(User user, List<Long> sids, Optional<Boolean> test,
-                                                   Date earliest, ActionChain actionChain)
-            throws TaskomaticApiException {
+    public static Set<Action> scheduleApplyStates(User user, List<Long> sids, List<String> states,
+            boolean test, Date earliest, ActionChain actionChain) throws TaskomaticApiException {
 
         if (!sids.stream().map(sid -> ServerFactory.lookupById(sid))
                 .filter(server -> !MinionServerUtils.isMinionServer(server))
@@ -329,13 +329,16 @@ public class ActionChainManager {
         Set<Long> sidSet = new HashSet<Long>();
         sidSet.addAll(sids);
 
-        String summary = "Apply highstate" + (test.isPresent() && test.get() ? " in test-mode" : "");
+        String summary = "Apply " +
+                (states.isEmpty() ? "highstate" : "states " + states.toString()) +
+                (test ? " in test-mode" : "");
         Set<Action> result = scheduleActions(user, ActionFactory.TYPE_APPLY_STATES, summary,
                 earliest, actionChain, null, sidSet);
         for (Action action : result) {
             ApplyStatesActionDetails applyState = new ApplyStatesActionDetails();
             applyState.setActionId(action.getId());
-            test.ifPresent(t -> applyState.setTest(t));
+            applyState.setMods(states);
+            applyState.setTest(test);
             ((ApplyStatesAction)action).setDetails(applyState);
             ActionFactory.save(action);
         }

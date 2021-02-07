@@ -25,6 +25,7 @@ import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -43,10 +44,14 @@ public class RecurringStateApplyJob extends RhnJavaJob {
      */
     public void execute(JobExecutionContext context) throws JobExecutionException {
         String scheduleName = context.getJobDetail().getKey().getName();
+        List<String> mods = getMods(context.getJobDetail().getJobDataMap());
         Optional<RecurringAction> recurringAction = RecurringActionFactory.lookupByJobName(scheduleName);
 
         recurringAction.ifPresentOrElse(
                 action ->  {
+                    if (mods != null) {
+                        action.setStates(mods);
+                    }
                     if (action.isActive()) {
                         scheduleAction(context, action);
                     }
@@ -63,7 +68,7 @@ public class RecurringStateApplyJob extends RhnJavaJob {
 
         try {
             ActionChainManager.scheduleApplyStates(action.getCreator(), minionIds,
-                    Optional.of(action.isTestMode()), context.getFireTime(), null);
+                    action.getStates(), action.isTestMode(), context.getFireTime(), null);
         }
         catch (TaskomaticApiException e) {
             log.error("Error scheduling states application for recurring action " + action, e);
@@ -77,5 +82,13 @@ public class RecurringStateApplyJob extends RhnJavaJob {
         if (result != 1) {
             log.error(String.format("Error cleaning schedule '%s'", scheduleName));
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> getMods(final Map<String, Object> dataMap) {
+        if (dataMap != null) {
+            return (List<String>) dataMap.get("states");
+        }
+        return null;
     }
 }
