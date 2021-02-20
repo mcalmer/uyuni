@@ -61,7 +61,7 @@ public class RecurringActionHandler extends BaseHandler {
      * @xmlrpc.doc Return a list of recurring actions for a given entity.
      * @xmlrpc.param #session_key()
      * @xmlrpc.param #param_desc("string", "entityType", "Type of the target entity. Can be MINION, GROUP or ORG.")
-     * @xmlrpc.param #param_desc("int", "entityId", "Id of the target entity")
+     * @xmlrpc.param #param_desc("int", "entityId", "Id of the target entity. system id, group id or org id")
      * @xmlrpc.returntype
      *      #array_begin()
      *          $RecurringActionSerializer
@@ -127,6 +127,8 @@ public class RecurringActionHandler extends BaseHandler {
      *      #prop_desc("int", "entity_id", "The id of the target entity")
      *      #prop_desc("string", "name", "The name of the action")
      *      #prop_desc("string", "cron_expr", "The execution frequency of the action")
+     *      #prop_desc("array", "states", "The names of states to execute (optional)")
+     *        #array_single("string", "State name")
      *      #prop_desc("boolean", "test", "Whether the action should be executed in test mode (optional)")
      *  #struct_end()
      * @xmlrpc.returntype #param_desc("int", "id", "The id of the recurring action")
@@ -158,6 +160,11 @@ public class RecurringActionHandler extends BaseHandler {
         action.setCronExpr((String) actionProps.get("cron_expr"));
         if (actionProps.containsKey("test")) {
             action.setTestMode(Boolean.parseBoolean(actionProps.get("test").toString()));
+        }
+        if (actionProps.containsKey("states")) {
+            @SuppressWarnings("unchecked")
+            List<String> stateNames = (List<String>) actionProps.get("states");
+            action.setStates(stateNames);
         }
         return action;
     }

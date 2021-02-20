@@ -60,6 +60,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
@@ -208,7 +209,8 @@ public class MinionActionCleanupTest extends JMockBaseTestCaseWithUser {
         ActionChain actionChain = ActionChainFactory.getOrCreateActionChain(label, user);
 
         Set<Action> applyStates = ActionChainManager
-                .scheduleApplyStates(user, Arrays.asList(minion1.getId(), minion2.getId()), Optional.of(false), earliest, actionChain);
+                .scheduleApplyStates(user, Arrays.asList(minion1.getId(), minion2.getId()),
+                        new ArrayList<String>(), false, earliest, actionChain);
         assertEquals(2, applyStates.size());
 
         ScriptActionDetails sad = ActionFactory.createScriptActionDetails(
@@ -265,7 +267,7 @@ public class MinionActionCleanupTest extends JMockBaseTestCaseWithUser {
                             minion1.getMinionId(), Arrays.asList(action1_1.getId() + "", action1_2.getId() + ""),
                             minion2.getMinionId(), Arrays.asList(action2_1.getId() + "", action2_2.getId() + "")))));
                 }
-               
+
             }
         });
 
@@ -283,7 +285,7 @@ public class MinionActionCleanupTest extends JMockBaseTestCaseWithUser {
         MinionActionUtils minionActionUtils = new MinionActionUtils(saltServerActionService, saltServiceMock,
                 saltUtils);
         minionActionUtils.cleanupMinionActionChains();
-        
+
         if (!MinionActionUtils.POSTGRES) {
             assertActionCompleted(action1_1);
             assertActionCompleted(action1_2);

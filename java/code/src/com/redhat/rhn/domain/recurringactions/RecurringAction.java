@@ -23,6 +23,7 @@ import com.redhat.rhn.domain.user.legacy.UserImpl;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.persistence.Column;
@@ -56,6 +57,7 @@ public abstract class RecurringAction extends BaseDomainHelper {
     private boolean active;
     private User creator;
 
+    private List<String> states;
     public static final String RECURRING_ACTION_PREFIX = "recurring-action-";
 
     /**
@@ -127,6 +129,22 @@ public abstract class RecurringAction extends BaseDomainHelper {
             throw new IllegalArgumentException("ID attribute must not be null");
         }
         return RECURRING_ACTION_PREFIX + getId();
+    }
+
+    /**
+     * Set State Names
+     * @param statesIn state names to set
+     */
+    public void setStates(List<String> statesIn) {
+        states = statesIn;
+    }
+
+    /**
+     * @return list of state names or empty list
+     */
+    @Transient
+    public List<String> getStates() {
+        return states == null ? new ArrayList<String>() : states;
     }
 
     /**

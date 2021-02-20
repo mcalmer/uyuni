@@ -45,6 +45,7 @@ import org.jmock.imposters.ByteBuddyClassImposteriser;
 
 import java.io.File;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -103,7 +104,8 @@ public class MaintenanceManagerScheduleActionsTest extends JMockBaseTestCaseWith
         mm.assignScheduleToSystems(user, schedule, Set.of(sys1.getId()), false);
 
         try {
-            ActionChainManager.scheduleApplyStates(user, List.of(sys1.getId(), sys2.getId()), empty(), new Date(12345), null);
+            ActionChainManager.scheduleApplyStates(user, List.of(sys1.getId(), sys2.getId()),
+                    new ArrayList<>(), false, new Date(12345), null);
             fail("NoMaintenanceWindowException should have been thrown.");
         }
         catch (NotInMaintenanceModeException e) {
@@ -111,7 +113,8 @@ public class MaintenanceManagerScheduleActionsTest extends JMockBaseTestCaseWith
         }
 
         // no exception should happen here:
-        ActionChainManager.scheduleApplyStates(user, List.of(sys2.getId()), empty(), new Date(12345), null);
+        ActionChainManager.scheduleApplyStates(user, List.of(sys2.getId()), new ArrayList<>(), false,
+                new Date(12345), null);
     }
 
     /**
@@ -134,7 +137,8 @@ public class MaintenanceManagerScheduleActionsTest extends JMockBaseTestCaseWith
         assertTrue(mm.isSystemInMaintenanceMode(sys1));
 
         try {
-            ActionChainManager.scheduleApplyStates(user, List.of(sys1.getId()), empty(), new Date(12345), null);
+            ActionChainManager.scheduleApplyStates(user, List.of(sys1.getId()),
+                    new ArrayList<>(), false, new Date(12345), null);
             fail("NoMaintenanceWindowException should have been thrown.");
         }
         catch (NotInMaintenanceModeException e) {
@@ -143,7 +147,8 @@ public class MaintenanceManagerScheduleActionsTest extends JMockBaseTestCaseWith
 
         ZonedDateTime start = ZonedDateTime.parse("2020-04-30T09:15:00+02:00", ISO_OFFSET_DATE_TIME);
         Date date = Date.from(start.toInstant());
-        ActionChainManager.scheduleApplyStates(user, List.of(sys1.getId()), empty(), date, null);
+        ActionChainManager.scheduleApplyStates(user, List.of(sys1.getId()), new ArrayList<>(),
+                false, date, null);
     }
 
     /**
