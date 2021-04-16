@@ -29,12 +29,15 @@ import java.util.Optional;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
@@ -49,7 +52,7 @@ import javax.persistence.Transient;
     @NamedQuery(name = "SCCRegCache.serversRequireRegistration",
                 query = "SELECT rci " +
                         "FROM com.redhat.rhn.domain.scc.SCCRegCacheItem as rci " +
-                        "JOIN rci.Server as s " +
+                        "JOIN rci.server as s " +
                         "WHERE rci.sccRegistrationRequired = 'Y' " +
                         "AND (rci.registrationErrorTime IS NULL " +
                         "     OR rci.registrationErrorTime < :retryTime) " +
@@ -57,7 +60,7 @@ import javax.persistence.Transient;
     @NamedQuery(name = "SCCRegCache.listDeRegisterItems",
                 query = "SELECT rci " +
                         "FROM com.redhat.rhn.domain.scc.SCCRegCacheItem as rci " +
-                        "WHERE rci.Server is NULL " +
+                        "WHERE rci.server is NULL " +
                         "AND (rci.registrationErrorTime IS NULL " +
                         "     OR rci.registrationErrorTime < :retryTime) " +
                         "ORDER BY rci.sccId ASC"),
@@ -130,7 +133,8 @@ public class SCCRegCacheItem extends BaseDomainHelper {
     /**
      * @return Returns the server.
      */
-    @ManyToOne
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "server_id", nullable = true)
     protected Server getServer() {
         return server;
     }
