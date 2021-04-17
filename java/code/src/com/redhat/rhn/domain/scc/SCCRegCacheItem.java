@@ -108,6 +108,7 @@ public class SCCRegCacheItem extends BaseDomainHelper {
      * @return the credentials
      */
     @ManyToOne
+    @JoinColumn(name = "creds_id")
     protected Credentials getCredentials() {
         return credentials;
     }
