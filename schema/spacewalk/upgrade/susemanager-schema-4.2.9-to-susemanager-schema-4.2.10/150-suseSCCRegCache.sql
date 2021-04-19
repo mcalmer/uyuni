@@ -28,6 +28,7 @@ CREATE TABLE IF NOT EXISTS suseSCCRegCache
                          CONSTRAINT suse_sccregcache_reg_ck
                              CHECK (scc_reg_required IN ('Y', 'N')),
     scc_id                 NUMERIC,
+    scc_login              VARCHAR(64),
     scc_passwd             VARCHAR(64),
     scc_regerror_timestamp TIMESTAMPTZ,
     creds_id       NUMERIC NULL
