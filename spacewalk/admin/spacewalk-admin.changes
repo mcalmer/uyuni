@@ -1,3 +1,5 @@
+- add service to update configfile and introduce a backup scc user
+
 -------------------------------------------------------------------
 Wed Jan 27 13:00:30 CET 2021 - jgonzalez@suse.com
 
