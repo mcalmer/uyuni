@@ -21,7 +21,7 @@ import com.redhat.rhn.domain.credentials.CredentialsFactory;
 import com.redhat.rhn.domain.scc.SCCCachingFactory;
 import com.redhat.rhn.domain.scc.SCCRegCacheItem;
 import com.redhat.rhn.manager.content.ContentSyncManager;
-import com.redhat.rhn.taskomatic.SCCSystemRegistry;
+import com.suse.scc.SCCSystemRegistrationManager;
 
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -48,10 +48,10 @@ public class ForwardRegistrationTask extends RhnJavaJob {
                 List<SCCRegCacheItem> forwardRegistration = SCCCachingFactory.findSystemsToForwardRegistration();
                 List<SCCRegCacheItem> deregister = SCCCachingFactory.listDeregisterItems();
                 List<Credentials> credentials = CredentialsFactory.lookupSCCCredentials();
-                SCCSystemRegistry sccSystemRegistry = new SCCSystemRegistry(url, uuid);
+                SCCSystemRegistrationManager sccSystemRegistrationManager = new SCCSystemRegistrationManager(url, uuid);
                 credentials.stream().filter(c -> c.isPrimarySCCCredential()).findFirst().ifPresent(primaryCredentials -> {
-                    sccSystemRegistry.deregister(deregister, false);
-                    sccSystemRegistry.register(forwardRegistration, primaryCredentials);
+                    sccSystemRegistrationManager.deregister(deregister, false);
+                    sccSystemRegistrationManager.register(forwardRegistration, primaryCredentials);
                 });
             }
         }
