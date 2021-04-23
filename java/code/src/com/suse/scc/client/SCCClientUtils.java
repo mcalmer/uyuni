@@ -87,7 +87,7 @@ public class SCCClientUtils {
             String user, String logDir) throws IOException {
         InputStream inputStream = null;
         try {
-            if(response.getEntity() == null) {
+            if (response.getEntity() == null) {
                 inputStream = InputStream.nullInputStream();
             }
             else {
