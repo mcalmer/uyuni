@@ -207,7 +207,7 @@ public class SCCWebClient implements SCCClient {
     public void deleteSystem(long id) throws SCCClientException {
         HttpDelete request = new HttpDelete(config.getUrl() + "/connect/organizations/systems/" + id);
         addHeaders(request);
-        Reader streamReader = null;
+        //Reader streamReader = null;
         try {
             // Connect and parse the response on success
             HttpResponse response = httpClient.executeRequest(request,
@@ -216,8 +216,9 @@ public class SCCWebClient implements SCCClient {
             int responseCode = response.getStatusLine().getStatusCode();
 
             if (responseCode == HttpStatus.SC_NO_CONTENT) {
-                streamReader = SCCClientUtils.getLoggingReader(request.getURI(), response,
-                        config.getUsername(), config.getLoggingDir());
+                // DELETE requests do not have content
+                //streamReader = SCCClientUtils.getLoggingReader(request.getURI(), response,
+                //        config.getUsername(), config.getLoggingDir());
 
             }
             else {
@@ -236,7 +237,7 @@ public class SCCWebClient implements SCCClient {
         }
         finally {
             request.releaseConnection();
-            SCCClientUtils.closeQuietly(streamReader);
+            //SCCClientUtils.closeQuietly(streamReader);
         }
     }
 
