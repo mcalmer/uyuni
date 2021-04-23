@@ -8,7 +8,7 @@ begin
 end;
 $$ language plpgsql;
 
-drop trigger if exists rhn_cpu_up_trig;
+drop trigger if exists rhn_cpu_up_trig on rhnCpu;
 create trigger
 rhn_cpu_up_trig
 after update on rhnCpu

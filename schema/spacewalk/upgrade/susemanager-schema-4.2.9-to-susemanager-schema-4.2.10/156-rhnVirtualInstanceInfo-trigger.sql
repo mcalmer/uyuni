@@ -16,7 +16,7 @@ begin
 end;
 $$ language plpgsql;
 
-drop trigger if exists rhn_virtinst_info_iud_trig;
+drop trigger if exists rhn_virtinst_info_iud_trig on rhnVirtualInstanceInfo;
 create trigger
 rhn_virtinst_info_iud_trig
 after insert or update or delete on rhnVirtualInstanceInfo

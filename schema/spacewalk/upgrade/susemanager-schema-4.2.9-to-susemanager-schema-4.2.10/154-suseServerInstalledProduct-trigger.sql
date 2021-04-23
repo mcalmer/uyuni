@@ -16,7 +16,7 @@ begin
 end;
 $$ language plpgsql;
 
-drop trigger if exists susesrvinstprod_iud_trig;
+drop trigger if exists susesrvinstprod_iud_trig on suseServerInstalledProduct;
 create trigger
 susesrvinstprod_iud_trig
 after insert or update or delete on suseServerInstalledProduct

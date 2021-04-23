@@ -7,7 +7,7 @@ begin
 end;
 $$ language plpgsql;
 
-drop trigger if exists suse_sccregcache_mod_trig;
+drop trigger if exists suse_sccregcache_mod_trig on suseSCCRegCache;
 create trigger
 suse_sccregcache_mod_trig
 before insert or update on suseSCCRegCache
