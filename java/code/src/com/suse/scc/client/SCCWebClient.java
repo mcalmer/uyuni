@@ -40,6 +40,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.message.AbstractHttpMessage;
 import org.apache.log4j.Logger;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.Type;
@@ -207,7 +208,7 @@ public class SCCWebClient implements SCCClient {
     public void deleteSystem(long id) throws SCCClientException {
         HttpDelete request = new HttpDelete(config.getUrl() + "/connect/organizations/systems/" + id);
         addHeaders(request);
-        //Reader streamReader = null;
+        BufferedReader streamReader = null;
         try {
             // Connect and parse the response on success
             HttpResponse response = httpClient.executeRequest(request,
@@ -217,14 +218,14 @@ public class SCCWebClient implements SCCClient {
 
             if (responseCode == HttpStatus.SC_NO_CONTENT) {
                 // DELETE requests do not have content
-                //streamReader = SCCClientUtils.getLoggingReader(request.getURI(), response,
-                //        config.getUsername(), config.getLoggingDir());
-
             }
             else {
                 // Request was not successful
+                streamReader = SCCClientUtils.getLoggingReader(request.getURI(), response,
+                        config.getUsername(), config.getLoggingDir());
                 throw new SCCClientException(responseCode, request.getURI().toString(),
-                        "Got response code " + responseCode + " connecting to " + request.getURI());
+                        String.format("Got response code %s connecting to %s: %s", responseCode,
+                                request.getURI(), streamReader.lines().collect(Collectors.joining("\n"))));
             }
         }
         catch (NoRouteToHostException e) {
@@ -237,7 +238,7 @@ public class SCCWebClient implements SCCClient {
         }
         finally {
             request.releaseConnection();
-            //SCCClientUtils.closeQuietly(streamReader);
+            SCCClientUtils.closeQuietly(streamReader);
         }
     }
 
