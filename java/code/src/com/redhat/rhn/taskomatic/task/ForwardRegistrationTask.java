@@ -49,11 +49,10 @@ public class ForwardRegistrationTask extends RhnJavaJob {
                     waitTime = 1;
                 }
                 try {
-                    log.info("Forwarding registrations task will start in " + waitTime + " seconds");
                     Thread.sleep(waitTime * 1000);
                 }
                 catch (InterruptedException e) {
-                    log.info("Sleep interrupted", e);
+                    log.debug("Sleep interrupted", e);
                 }
                 URI url = new URI(Config.get().getString(ConfigDefaults.SCC_URL));
                 //TODO: find a better place to put getUUID
