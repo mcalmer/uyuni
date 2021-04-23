@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014--2015 SUSE LLC
+ * Copyright (c) 2014--2021 SUSE LLC
  *
  * This software is licensed to you under the GNU General Public License,
  * version 2 (GPLv2). There is NO WARRANTY for this software, express or
@@ -310,10 +310,6 @@ public class SCCWebClient implements SCCClient {
                         config.getUsername(), config.getLoggingDir());
 
                 // Parse result type from JSON
-                Gson gson = new GsonBuilder()
-                        .setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX")
-                        .registerTypeAdapterFactory(new OptionalTypeAdapterFactory())
-                        .create();
                 T result = gson.fromJson(streamReader, resultType);
 
                 Optional<Integer> perPageOpt = Optional.ofNullable(response.getFirstHeader("Per-Page"))
