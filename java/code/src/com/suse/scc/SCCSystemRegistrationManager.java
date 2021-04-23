@@ -51,7 +51,7 @@ public class SCCSystemRegistrationManager {
                                 uuid
                         ));
                         try {
-                            LOG.debug("re-register system " + cacheItem);
+                            LOG.debug("de-register system " + cacheItem);
                             sccClient.deleteSystem(sccId);
                             SCCCachingFactory.deleteRegCacheItem(cacheItem);
                         }
