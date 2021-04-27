@@ -84,12 +84,12 @@ public interface SCCClient {
      * @return registration result
      * @throws SCCClientException
      */
-    SCCSystemCredentialsJson createSystem(SCCRegisterSystemJson system) throws SCCClientException;
+    SCCSystemCredentialsJson createSystem(SCCRegisterSystemJson system, String username, String password) throws SCCClientException;
 
     /**
      * Delete a System at SCC
      * @param id the scc system id
      * @throws SCCClientException
      */
-    void deleteSystem(long id) throws SCCClientException;
+    void deleteSystem(long id, String username, String password) throws SCCClientException;
 }

@@ -92,12 +92,12 @@ public class SCCFileClient implements SCCClient {
     }
 
     @Override
-    public SCCSystemCredentialsJson createSystem(SCCRegisterSystemJson system) throws SCCClientException {
+    public SCCSystemCredentialsJson createSystem(SCCRegisterSystemJson system, String username, String password) throws SCCClientException {
         return null;
     }
 
     @Override
-    public void deleteSystem(long id) throws SCCClientException {
+    public void deleteSystem(long id, String username, String password) throws SCCClientException {
     }
 
     /**
