@@ -105,7 +105,6 @@ Requires:       (python-PyYAML or PyYAML)
 %if 0%{?fedora} >= 22
 Recommends:     cobbler20
 %endif
-Requires:       /usr/bin/gpg
 Requires:       curl
 Requires:       perl-DateTime
 Requires:       perl-Mail-RFC822-Address
