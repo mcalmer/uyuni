@@ -1,3 +1,4 @@
+- implement package locking for salt minions
 - Bump version to 4.3.0
 
 -------------------------------------------------------------------
