@@ -914,7 +914,9 @@ public class ContentSyncManager {
                     continue;
                 }
                 List<String> channelParts = new ArrayList<>(
-                        Arrays.asList(parts[3], product.getName(), product.getVersion()));
+                        //Arrays.asList(parts[3], product.getName(), product.getVersion()));
+                        Arrays.asList(parts[3], jrepo.getName()));
+                /*
                 switch (parts[7]) {
                 case "ptf":
                     channelParts.add("PTFs");
@@ -934,7 +936,11 @@ public class ContentSyncManager {
                     log.warn("Unknown repo type: " + parts[7] + ". Skipping");
                     continue;
                 }
-                channelParts.add(prdArch);
+                */
+                //channelParts.add(prdArch);
+                if (!channelParts.get(1).contains(prdArch)) {
+                    channelParts.add(prdArch);
+                }
 
                 List<SUSEProduct> rootProducts = SUSEProductFactory.findAllRootProductsOf(product);
                 if (rootProducts.isEmpty()) {
@@ -964,9 +970,9 @@ public class ContentSyncManager {
                             }
                             List<String> cList = Stream.concat(channelParts.stream(), suffix.stream())
                                 .filter(e -> !e.isBlank())
-                                .map(String::toLowerCase)
                                 .collect(Collectors.toList());
-                            prodRepoLink.setChannelLabel(String.join("-", cList));
+                            prodRepoLink.setChannelLabel(String.join("-", cList)
+                                    .toLowerCase().replace(" for ", " ").replace(" ", "-"));
                             prodRepoLink.setChannelName(String.join(" ", cList));
 
                         });
