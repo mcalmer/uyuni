@@ -71,6 +71,7 @@ public class ReportDBHelper {
      * Generated a query for all local entries of a report db table
      * @param session session the query should use
      * @param table table name
+     * @param log the logger
      * @return select mode query
      */
     public static SelectMode generateQuery(Session session, String table, Logger log) {
