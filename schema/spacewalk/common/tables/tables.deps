@@ -262,7 +262,7 @@ suseSCCRepositoryAuth          :: suseCredentials rhnContentSource
 suseSCCSubscription            :: suseCredentials
 suseSCCSubscriptionProduct     :: suseSCCSubscription suseProducts
 suseServerCoCoAttestationConfig :: rhnServer
-suseServerCoCoAttestationReport :: rhnServer
+suseServerCoCoAttestationReport :: rhnServer rhnAction
 suseServerInstalledProduct     :: rhnServer suseInstalledProduct
 suseServerStateRevision        :: rhnServer suseStateRevision
 susePinnedSubscription         :: rhnServer
