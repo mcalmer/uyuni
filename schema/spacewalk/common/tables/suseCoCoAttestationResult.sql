@@ -15,7 +15,8 @@ CREATE TABLE suseCoCoAttestationResult
                       CONSTRAINT suse_cocoatt_res_id_pk PRIMARY KEY,
         report_id   NUMERIC NOT NULL
                       CONSTRAINT suse_cocoatt_res_rid_fk
-                        REFERENCES suseServerCoCoAttestationReport (id),
+                        REFERENCES suseServerCoCoAttestationReport (id)
+                        ON DELETE CASCADE,
         result_type NUMERIC     NOT NULL,
         status      VARCHAR(32) NOT NULL
                       CONSTRAINT suse_cocoatt_res_st_ck

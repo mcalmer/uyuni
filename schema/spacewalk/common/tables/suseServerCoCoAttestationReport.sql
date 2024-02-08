@@ -14,9 +14,11 @@ CREATE TABLE suseServerCoCoAttestationReport
         id          NUMERIC     NOT NULL
                       CONSTRAINT suse_srvcocoatt_rep_id_pk PRIMARY KEY,
         server_id   NUMERIC     NOT NULL
-                      CONSTRAINT suse_srvcocoatt_rep_sid_fk REFERENCES rhnServer (id),
-        action_id   NUMERIC     NOT NULL
-                      CONSTRAINT suse_srvcocoatt_rep_aid_fk REFERENCES rhnAction (id),
+                      CONSTRAINT suse_srvcocoatt_rep_sid_fk REFERENCES rhnServer (id)
+                      ON DELETE CASCADE,
+        action_id   NUMERIC     NULL
+                      CONSTRAINT suse_srvcocoatt_rep_aid_fk REFERENCES rhnAction (id)
+                      ON DELETE SET NULL,
 	env_type    NUMERIC     NOT NULL,
 	status      VARCHAR(32) NOT NULL
 	              CONSTRAINT suse_srvcocoatt_rep_st_ck
