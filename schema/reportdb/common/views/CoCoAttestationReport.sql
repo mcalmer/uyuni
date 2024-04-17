@@ -25,7 +25,7 @@ CREATE OR REPLACE VIEW CoCoAttestationReport AS
     FROM CoCoAttestation 
             LEFT JOIN System ON ( CoCoAttestation.mgm_id = System.mgm_id AND CoCoAttestation.system_id = System.system_id )
 ORDER BY CoCoAttestation.mgm_id
-            , CoCoAttestation.report_id
             , System.system_id
+            , CoCoAttestation.report_id
             , CoCoAttestation.create_time
 ;
