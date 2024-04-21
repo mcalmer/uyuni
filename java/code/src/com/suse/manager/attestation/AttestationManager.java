@@ -215,10 +215,6 @@ public class AttestationManager {
             LOG.error("Report not linked to a system");
             throw new LookupException("Report not linked to a system");
         }
-        if (Optional.ofNullable(reportIn.getAction()).isEmpty()) {
-            LOG.error("Report not linked to an action");
-            throw new LookupException("Report not linked to an action");
-        }
         factory.initResultsForReport(reportIn);
     }
 
