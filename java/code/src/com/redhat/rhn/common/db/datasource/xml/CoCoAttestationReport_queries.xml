@@ -25,7 +25,7 @@
                     , COUNT(CASE susecocoattestationresult.status WHEN 'SUCCEEDED' THEN 1 ELSE NULL END) AS pass
                     , COUNT(CASE susecocoattestationresult.status WHEN 'FAILED' THEN 1 ELSE NULL END) AS fail
             FROM suseservercocoattestationreport
-                    INNER JOIN susecocoattestationresult ON suseservercocoattestationreport.id = susecocoattestationresult.report_id
+                    LEFT JOIN susecocoattestationresult ON suseservercocoattestationreport.id = susecocoattestationresult.report_id
            WHERE suseservercocoattestationreport.id &gt; :report_id
         GROUP BY suseservercocoattestationreport.id
                     , suseservercocoattestationreport.server_id
