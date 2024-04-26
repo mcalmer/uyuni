@@ -12,16 +12,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ *ff
  * UserNotificationSerializer
  *
  * @apidoc.doc
  *  #struct_begin("notification")
- *      #prop("int", "id")
- *      #prop("int", "messageId")
- *      #prop("boolean", "read")
- *      #prop("string", "message")
- *      #prop("string", "type")
- *      #prop($date, "created")
+ *      #prop("long", "id")
+ *      #prop_array("boolean", "read")
+ *      #prop_array("string", "message")
+ *      #prop_array("notificationType", "type")
+ *      #prop_array("date", "created")
  *  #struct_end()
  *
  */
@@ -36,7 +36,6 @@ public class UserNotificationSerializer extends ApiResponseSerializer<UserNotifi
     public SerializedApiResponse serialize(UserNotification src) {
         return new SerializationBuilder()
                 .add("id", src.getId())
-                .add("messageId", src.getMessage().getId())
                 .add("read", src.getRead())
                 .add("message", src.getMessage().getData())
                 .add("type", src.getMessage().getType())
