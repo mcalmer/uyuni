@@ -29,6 +29,8 @@ import com.redhat.rhn.domain.server.ServerGroup;
 import com.redhat.rhn.domain.server.ServerGroupFactory;
 import com.redhat.rhn.domain.user.User;
 import com.redhat.rhn.domain.user.UserFactory;
+import com.redhat.rhn.domain.notification.UserNotification;
+import com.redhat.rhn.domain.notification.UserNotificationFactory;
 import com.redhat.rhn.frontend.action.common.BadParameterException;
 import com.redhat.rhn.frontend.xmlrpc.BaseHandler;
 import com.redhat.rhn.frontend.xmlrpc.DeleteUserException;
@@ -58,6 +60,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.Collection;
 
 /**
  * UserHandler
@@ -1139,6 +1142,65 @@ public class UserHandler extends BaseHandler {
         User targetUser = XmlRpcUserHelper.getInstance().lookupTargetUser(
                 loggedInUser, login);
         targetUser.setEmailNotify(BooleanUtils.toIntegerObject(value));
+        return 1;
+    }
+
+    /**
+     * @param user The current user
+     * @param unread Unread notifications
+     * @return Returns a list of notifications
+     * @apidoc.doc Get all notifications from a user.
+     * @apidoc.param #session_key()
+     * @apidoc.param #param_desc("boolean", "unread", "Read notifications.")
+     * @apidoc.returntype #return_notifications()
+     */
+    @ReadOnly
+    public List<UserNotification> getNotifications(User user, boolean unread) {
+        List<UserNotification> notifications;
+
+        if (unread) {
+            notifications = UserNotificationFactory.listUnreadByUser(user);
+        } else {
+            notifications = UserNotificationFactory.listAllByUser(user);
+        }
+        return notifications;
+    }
+
+    /**
+     * @param userNotification The notification
+     * @return Returns 1 if successful
+     * @apidoc.doc Makes a notification raed
+     * @apidoc.param #param_desc("userNotification", "notification", "The target notification.")
+     * @apidoc.returntype #return_int_success()
+     */
+    public int makeNotificationRead(User user, UserNotification notification) {
+        UserNotificationFactory.updateStatus(notification, true);
+        return 1;
+    }
+
+    /**
+     * @param user The current user
+     * @return Returns 1 if successful
+     * @apidoc.doc Makes all notifications from a user read
+     * @apidoc.param #session_key()
+     * @apidoc.returntype #return_int_success()
+     */
+    public int makeAllNotificationsRead(User user) {
+        for (UserNotification notification : getNotifications(user, true)) {
+            UserNotificationFactory.updateStatus(notification, true);
+        }
+        return 1;
+    }
+
+    /**
+     * @param notifications The notifications to delete
+     * @return int number of deleted notifications
+     * @apidoc.doc Deletes multiple notifications
+     * @apidoc.param #param_desc("collection", "notifications", "List of notifications.")
+     * @apidoc.returntype #return_int_success()
+     */
+    public int deleteNotification(User user, Collection<UserNotification> notifications) {
+        UserNotificationFactory.delete(notifications);
         return 1;
     }
 }
