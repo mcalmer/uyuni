@@ -16,12 +16,12 @@ import java.util.List;
  *
  * @apidoc.doc
  *  #struct_begin("notification")
- *      #prop("long", "id")
- *      #prop("long", "messageId")
- *      #prop_array("boolean", "read")
- *      #prop_array("string", "message")
- *      #prop_array("notificationType", "type")
- *      #prop_array("date", "created")
+ *      #prop("int", "id")
+ *      #prop("int", "messageId")
+ *      #prop("boolean", "read")
+ *      #prop("string", "message")
+ *      #prop("string", "type")
+ *      #prop($date, "created")
  *  #struct_end()
  *
  */
