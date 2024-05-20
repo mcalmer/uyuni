@@ -14,8 +14,8 @@
  */
 package com.redhat.rhn.frontend.xmlrpc.user;
 
-import com.redhat.rhn.domain.notification.UserNotificationFactory;
 import com.redhat.rhn.domain.notification.UserNotification;
+import com.redhat.rhn.domain.notification.UserNotificationFactory;
 import com.redhat.rhn.domain.user.User;
 import com.redhat.rhn.frontend.xmlrpc.BaseHandler;
 
