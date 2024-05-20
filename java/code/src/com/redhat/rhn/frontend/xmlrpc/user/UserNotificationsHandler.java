@@ -53,10 +53,10 @@ public class UserNotificationsHandler extends BaseHandler {
 
     /**
      * @return Returns 1 if successful
+     * @param user The current user
      * @apidoc.doc Makes a notification raed
      * @apidoc.param #session_key()
-     * @apidoc.param #param_desc("Collection", "notifications", "The target notification.")
-     * @apidoc.param #session_key()
+     * @apidoc.param #param_desc("Collection<Integer>", "notifications", "The target notification.")
      * @apidoc.returntype #return_int_success()
      */
     public int makeNotificationsRead(User user, Collection<Integer> notifications) {
@@ -84,6 +84,7 @@ public class UserNotificationsHandler extends BaseHandler {
 
     /**
      * @param notifications The notifications to delete
+     * @param user The current user
      * @return int number of deleted notifications
      * @apidoc.doc Deletes multiple notifications
      * @apidoc.param #session_key()
