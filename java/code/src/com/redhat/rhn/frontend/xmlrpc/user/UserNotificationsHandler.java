@@ -54,9 +54,10 @@ public class UserNotificationsHandler extends BaseHandler {
     /**
      * @return Returns 1 if successful
      * @param user The current user
+     * @param notifications Notification list
      * @apidoc.doc Makes a notification raed
      * @apidoc.param #session_key()
-     * @apidoc.param #param_desc("Collection<Integer>", "notifications", "The target notification.")
+     * @apidoc.param #param_desc("Collection", "notifications", "The target notification.")
      * @apidoc.returntype #return_int_success()
      */
     public int makeNotificationsRead(User user, Collection<Integer> notifications) {
