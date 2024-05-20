@@ -52,7 +52,6 @@ public class UserNotificationsHandler extends BaseHandler {
     }
 
     /**
-     * @param userNotification The notification
      * @return Returns 1 if successful
      * @apidoc.doc Makes a notification raed
      * @apidoc.param #param_desc("userNotification", "notification", "The target notification.")
