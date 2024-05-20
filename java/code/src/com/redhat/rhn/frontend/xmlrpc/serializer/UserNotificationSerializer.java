@@ -14,15 +14,11 @@
  */
 package com.redhat.rhn.frontend.xmlrpc.serializer;
 
-import com.redhat.rhn.domain.role.Role;
 import com.redhat.rhn.domain.notification.UserNotification;
 
 import com.suse.manager.api.ApiResponseSerializer;
 import com.suse.manager.api.SerializationBuilder;
 import com.suse.manager.api.SerializedApiResponse;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  *ff
