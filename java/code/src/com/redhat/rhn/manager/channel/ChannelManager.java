@@ -126,6 +126,11 @@ public class ChannelManager extends BaseManager {
     private static TaskomaticApi taskomaticApi = new TaskomaticApi();
     private static Logger log = LogManager.getLogger(ChannelManager.class);
 
+    private static final Map<String, Map<Integer, List<String>>> COMPATIBLE_PRODUCTS_MAPPING = new HashMap<>();
+    static {
+        COMPATIBLE_PRODUCTS_MAPPING.put("res", Map.of(7, List.of("res-ltss")));
+    }
+
     public static final String QRY_ROLE_MANAGE = "manage";
     public static final String QRY_ROLE_SUBSCRIBE = "subscribe";
     public static final String RHEL7_EUS_VERSION = "7Server";
@@ -1709,6 +1714,7 @@ public class ChannelManager extends BaseManager {
         }
 
         listPossibleSuseBaseChannelsForServer(s).ifPresent(channelDtos::addAll);
+        listCompatibleChannels(s).ifPresent(channelDtos::addAll);
 
         // Get all the possible base-channels owned by this Org
         channelDtos.addAll(listCustomBaseChannelsForServer(s));
@@ -1718,6 +1724,56 @@ public class ChannelManager extends BaseManager {
         }
 
         return channelDtos;
+    }
+
+    private static DataResult<EssentialChannelDto> getChannelDtoByProduct(Long productId, Long archId) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("pid", productId);
+        params.put("channel_arch_id", archId);
+        SelectMode m3 = ModeFactory.getMode("Channel_queries", "suse_base_channels_for_suse_product");
+        DataResult<EssentialChannelDto> ret  = makeDataResult(params, Collections.emptyMap(), null, m3);
+        return ret;
+    }
+
+    /**
+     * Support switching Channels for a list of compatible products to find the right base channel to switch to
+     * @param s the server to switch the base channel
+     * @return Optional List of possible base channels where this system can change to
+     */
+    public static Optional<DataResult<EssentialChannelDto>> listCompatibleChannels(Server s) {
+        log.debug("listPossibleLiberateChannel called");
+
+        Optional<SUSEProduct> installedBaseProduct = s.getInstalledProductSet().flatMap(
+                ps -> ofNullable(ps.getBaseProduct()));
+
+        return Opt.fold(installedBaseProduct,
+                () -> {
+                    log.info("Server has no base product installed");
+                    return empty();
+                },
+                bp -> {
+                    if (COMPATIBLE_PRODUCTS_MAPPING.containsKey(bp.getName())) {
+                        DataResult<EssentialChannelDto> liberateChannels = new DataResult<>(Collections.emptySet());
+                        List<String> liberateProducts = COMPATIBLE_PRODUCTS_MAPPING.get(bp.getName())
+                                .getOrDefault(Integer.parseInt(bp.getVersion()), Collections.emptyList());
+                        for (String name : liberateProducts) {
+                            SUSEProduct liberateProduct = SUSEProductFactory.findSUSEProduct(name,
+                                    bp.getVersion(), bp.getRelease(),
+                                    bp.getArch().getLabel(), true);
+                            if (liberateProduct != null) {
+                                DataResult<EssentialChannelDto> channelDtos = getChannelDtoByProduct(
+                                        liberateProduct.getId(),
+                                        s.getServerArch().getCompatibleChannelArch().getId());
+
+                                if (channelDtos != null) {
+                                    liberateChannels.addAll(channelDtos);
+                                }
+                            }
+                        }
+                        return of(liberateChannels);
+                    }
+                    return empty();
+                });
     }
 
     /**
