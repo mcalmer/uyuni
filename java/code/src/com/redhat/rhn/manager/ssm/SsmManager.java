@@ -305,7 +305,7 @@ public class SsmManager {
             }
             else {
                 // system doesn't have a base
-                List<EssentialChannelDto> availableBaseChannels = ChannelManager.listBaseChannelsForSystem(user, srv);
+                Set<EssentialChannelDto> availableBaseChannels = ChannelManager.listBaseChannelsForSystem(user, srv);
                 newBaseIsCompatible = availableBaseChannels.stream()
                         .anyMatch(abc -> abc.getId().equals(srvChange.getNewBaseId().orElse(null)));
             }

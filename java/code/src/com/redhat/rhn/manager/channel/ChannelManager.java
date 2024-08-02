@@ -1683,12 +1683,11 @@ public class ChannelManager extends BaseManager {
      *
      * @param usr requesting list
      * @param s Server to check against
-     * @return List of Channel objects that match
+     * @return Set of Channel objects that match
      */
-    public static List<EssentialChannelDto> listBaseChannelsForSystem(User usr,
-            Server s) {
+    public static Set<EssentialChannelDto> listBaseChannelsForSystem(User usr, Server s) {
 
-        List<EssentialChannelDto> channelDtos = new LinkedList<>();
+        Set<EssentialChannelDto> channelDtos = new HashSet<>();
         PackageEvr releaseEvr = PackageManager.lookupReleasePackageEvrFor(s);
         if (releaseEvr != null) {
             String rhelVersion =

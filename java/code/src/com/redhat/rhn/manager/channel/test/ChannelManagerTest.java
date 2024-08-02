@@ -437,8 +437,7 @@ public class ChannelManagerTest extends BaseTestCaseWithUser {
 
         ChannelTestUtils.createTestChannel(user);
         ChannelTestUtils.createTestChannel(user);
-        List<EssentialChannelDto> channels = ChannelManager.listBaseChannelsForSystem(
-                user, s);
+        Set<EssentialChannelDto> channels = ChannelManager.listBaseChannelsForSystem(user, s);
 
         assertTrue(channels.size() >= 2);
     }
@@ -466,7 +465,7 @@ public class ChannelManagerTest extends BaseTestCaseWithUser {
         // Test: list base channels for Liberty 7
         SUSEProductTestUtils.installSUSEProductOnServer(resProduct, s);
 
-        List<EssentialChannelDto> channels = ChannelManager.listBaseChannelsForSystem(user, s);
+        Set<EssentialChannelDto> channels = ChannelManager.listBaseChannelsForSystem(user, s);
 
         assertEquals(2, channels.size());
         List<String> expectedNames = new ArrayList<>(List.of(
@@ -527,8 +526,7 @@ public class ChannelManagerTest extends BaseTestCaseWithUser {
                 ChannelManager.RHEL_PRODUCT_NAME, version, release3);
         HibernateFactory.getSession().flush();
 
-        List<EssentialChannelDto> channels = ChannelManager.listBaseChannelsForSystem(
-                user, s);
+        Set<EssentialChannelDto> channels = ChannelManager.listBaseChannelsForSystem(user, s);
         assertTrue(channels.size() >= 2);
     }
 
