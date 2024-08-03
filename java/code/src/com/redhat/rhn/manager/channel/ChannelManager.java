@@ -52,7 +52,9 @@ import com.redhat.rhn.domain.product.SUSEProductChannel;
 import com.redhat.rhn.domain.product.SUSEProductExtension;
 import com.redhat.rhn.domain.product.SUSEProductFactory;
 import com.redhat.rhn.domain.rhnpackage.PackageEvr;
+import com.redhat.rhn.domain.rhnpackage.PackageFactory;
 import com.redhat.rhn.domain.role.RoleFactory;
+import com.redhat.rhn.domain.server.InstalledProduct;
 import com.redhat.rhn.domain.server.MinionServer;
 import com.redhat.rhn.domain.server.Server;
 import com.redhat.rhn.domain.server.ServerFactory;
@@ -131,6 +133,13 @@ public class ChannelManager extends BaseManager {
         COMPATIBLE_PRODUCTS_MAPPING.put("res", Map.of(7, List.of("res-ltss")));
     }
 
+    private static final Map<InstalledProduct, InstalledProduct> COMPATIBLE_PRODUCTS = new HashMap<>();
+    static {
+        COMPATIBLE_PRODUCTS.put(
+                new InstalledProduct("res", "7", PackageFactory.lookupPackageArchByLabel("x86_64"), "", true),
+                new InstalledProduct("res-ltss", "7", PackageFactory.lookupPackageArchByLabel("x86_64"), "", true)
+        );
+    }
     public static final String QRY_ROLE_MANAGE = "manage";
     public static final String QRY_ROLE_SUBSCRIBE = "subscribe";
     public static final String RHEL7_EUS_VERSION = "7Server";
@@ -1713,7 +1722,7 @@ public class ChannelManager extends BaseManager {
         }
 
         listPossibleSuseBaseChannelsForServer(s).ifPresent(channelDtos::addAll);
-        listCompatibleChannels(s).ifPresent(channelDtos::addAll);
+        listCompatibleBaseChannelsForServer(s).ifPresent(channelDtos::addAll);
 
         // Get all the possible base-channels owned by this Org
         channelDtos.addAll(listCustomBaseChannelsForServer(s));
@@ -1725,6 +1734,7 @@ public class ChannelManager extends BaseManager {
         return channelDtos;
     }
 
+    /*
     private static DataResult<EssentialChannelDto> getChannelDtoByProduct(Long productId, Long archId) {
         Map<String, Object> params = new HashMap<>();
         params.put("pid", productId);
@@ -1733,17 +1743,20 @@ public class ChannelManager extends BaseManager {
         DataResult<EssentialChannelDto> ret  = makeDataResult(params, Collections.emptyMap(), null, m3);
         return ret;
     }
+    */
 
     /**
-     * Support switching Channels for a list of compatible products to find the right base channel to switch to
+     * Support switching Channels. For a Server using a base channel find the right compatible base channel to switch to
      * @param s the server to switch the base channel
      * @return Optional List of possible base channels where this system can change to
      */
-    public static Optional<DataResult<EssentialChannelDto>> listCompatibleChannels(Server s) {
-        log.debug("listPossibleLiberateChannel called");
+    public static Optional<Set<EssentialChannelDto>> listCompatibleBaseChannelsForServer(Server s) {
+        log.debug("listCompatibleChannels called");
 
-        Optional<SUSEProduct> installedBaseProduct = s.getInstalledProductSet().flatMap(
-                ps -> ofNullable(ps.getBaseProduct()));
+        Optional<InstalledProduct> installedBaseProduct = s.getInstalledProducts()
+                .stream()
+                .filter(InstalledProduct::isBaseproduct)
+                .findFirst();
 
         return Opt.fold(installedBaseProduct,
                 () -> {
@@ -1751,28 +1764,61 @@ public class ChannelManager extends BaseManager {
                     return empty();
                 },
                 bp -> {
-                    if (COMPATIBLE_PRODUCTS_MAPPING.containsKey(bp.getName())) {
-                        DataResult<EssentialChannelDto> liberateChannels = new DataResult<>(Collections.emptySet());
-                        List<String> liberateProducts = COMPATIBLE_PRODUCTS_MAPPING.get(bp.getName())
-                                .getOrDefault(Integer.parseInt(bp.getVersion()), Collections.emptyList());
-                        for (String name : liberateProducts) {
-                            SUSEProduct liberateProduct = SUSEProductFactory.findSUSEProduct(name,
-                                    bp.getVersion(), bp.getRelease(),
-                                    bp.getArch().getLabel(), true);
-                            if (liberateProduct != null) {
-                                DataResult<EssentialChannelDto> channelDtos = getChannelDtoByProduct(
-                                        liberateProduct.getId(),
-                                        s.getServerArch().getCompatibleChannelArch().getId());
+                    if (COMPATIBLE_PRODUCTS.containsKey(bp)) {
+                        SUSEProduct compatProduct = COMPATIBLE_PRODUCTS.get(bp).getSUSEProduct();
+                        if (compatProduct != null) {
+                            Set<EssentialChannelDto> channelDtos = compatProduct.getSuseProductChannels()
+                                    .stream()
+                                    .map(SUSEProductChannel::getChannel)
+                                    .filter(Channel::isBaseChannel)
+                                    .map(EssentialChannelDto::new)
+                                    .collect(Collectors.toSet());
+                            /*
+                            DataResult<EssentialChannelDto> channelDtos = getChannelDtoByProduct(
+                                    compatProduct.getId(),
+                                    s.getServerArch().getCompatibleChannelArch().getId());
 
-                                if (channelDtos != null) {
-                                    liberateChannels.addAll(channelDtos);
-                                }
+                            if (channelDtos != null) {
+                                return of(channelDtos);
                             }
+                            */
+                            return of(channelDtos);
                         }
-                        return of(liberateChannels);
                     }
                     return empty();
                 });
+    }
+
+    /**
+     * Support switching Channels. For a channel find the right compatible base channel to switch to
+     * @param baseChannelIn the base channel
+     * @return Set of possible base channels where a system which use current base channel can switch to
+     */
+    public static Set<EssentialChannelDto> listCompatibleBaseChannelsForChannel(Channel baseChannelIn) {
+        Set<EssentialChannelDto> retval = new HashSet<>();
+        for (Map.Entry<InstalledProduct, InstalledProduct> compatProducts : COMPATIBLE_PRODUCTS.entrySet()) {
+            SUSEProduct sourceProduct = compatProducts.getKey().getSUSEProduct();
+            if (sourceProduct != null && sourceProduct
+                    .getSuseProductChannels()
+                    .stream()
+                    .map(SUSEProductChannel::getChannel)
+                    .filter(Channel::isBaseChannel)
+                    .map(Channel::getLabel)
+                    .anyMatch(l -> l.equals(baseChannelIn.getLabel()))) {
+                SUSEProduct targetProduct = compatProducts.getValue().getSUSEProduct();
+                if (targetProduct != null) {
+                    Set<EssentialChannelDto> compat = targetProduct
+                            .getSuseProductChannels()
+                            .stream()
+                            .map(SUSEProductChannel::getChannel)
+                            .filter(Channel::isBaseChannel)
+                            .map(EssentialChannelDto::new)
+                            .collect(Collectors.toSet());
+                    retval.addAll(compat);
+                }
+            }
+        }
+        return retval;
     }
 
     /**
@@ -1813,6 +1859,7 @@ public class ChannelManager extends BaseManager {
             }
         }
         retval.addAll(eusBaseChans);
+        retval.addAll(listCompatibleBaseChannelsForChannel(inChan));
 
         for (EssentialChannelDto dto : retval) {
             if (dto.getId().longValue() == inChan.getId().longValue()) {
@@ -1823,6 +1870,7 @@ public class ChannelManager extends BaseManager {
 
        return retval;
     }
+
 
     /**
      * Lookup the default release channel map for the given channel. Returns null if no
