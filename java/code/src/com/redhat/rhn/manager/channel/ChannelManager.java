@@ -136,8 +136,8 @@ public class ChannelManager extends BaseManager {
     private static final Map<InstalledProduct, InstalledProduct> COMPATIBLE_PRODUCTS = new HashMap<>();
     static {
         COMPATIBLE_PRODUCTS.put(
-                new InstalledProduct("res", "7", PackageFactory.lookupPackageArchByLabel("x86_64"), "", true),
-                new InstalledProduct("res-ltss", "7", PackageFactory.lookupPackageArchByLabel("x86_64"), "", true)
+                new InstalledProduct("res", "7", PackageFactory.lookupPackageArchByLabel("x86_64"), null, true),
+                new InstalledProduct("res-ltss", "7", PackageFactory.lookupPackageArchByLabel("x86_64"), null, true)
         );
     }
     public static final String QRY_ROLE_MANAGE = "manage";

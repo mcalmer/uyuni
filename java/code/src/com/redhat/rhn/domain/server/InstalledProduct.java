@@ -24,6 +24,8 @@ import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.Objects;
+
 /**
  * Installed Product
  */
@@ -163,22 +165,24 @@ public class InstalledProduct extends BaseDomainHelper {
         this.baseproduct = isBaseproductIn;
     }
 
+
     /**
      * {@inheritDoc}
      */
     @Override
-    public boolean equals(final Object other) {
-        if (!(other instanceof InstalledProduct)) {
+    public boolean equals(Object oIn) {
+        if (this == oIn) {
+            return true;
+        }
+        if (oIn == null || getClass() != oIn.getClass()) {
             return false;
         }
-        InstalledProduct castOther = (InstalledProduct) other;
-        return new EqualsBuilder()
-                .append(getName(), castOther.getName())
-                .append(getVersion(), castOther.getVersion())
-                .append(getArch(), castOther.getArch())
-                .append(getRelease(), castOther.getRelease())
-                .append(isBaseproduct(), castOther.isBaseproduct())
-                .isEquals();
+        InstalledProduct that = (InstalledProduct) oIn;
+        return isBaseproduct() == that.isBaseproduct() &&
+                Objects.equals(getName(), that.getName()) &&
+                Objects.equals(getVersion(), that.getVersion()) &&
+                Objects.compare(getArch(), that.getArch(), PackageArch::compareTo) == 0 &&
+                Objects.equals(getRelease(), that.getRelease());
     }
 
     /**
