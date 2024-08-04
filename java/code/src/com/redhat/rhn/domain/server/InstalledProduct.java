@@ -172,7 +172,8 @@ public class InstalledProduct extends BaseDomainHelper {
             return false;
         }
         InstalledProduct castOther = (InstalledProduct) other;
-        return new EqualsBuilder().append(getName(), castOther.getVersion())
+        return new EqualsBuilder()
+                .append(getName(), castOther.getName())
                 .append(getVersion(), castOther.getVersion())
                 .append(getArch(), castOther.getArch())
                 .append(getRelease(), castOther.getRelease())
