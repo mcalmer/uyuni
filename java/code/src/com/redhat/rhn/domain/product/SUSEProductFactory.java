@@ -90,18 +90,18 @@ public class SUSEProductFactory extends HibernateFactory {
     }
 
     /**
-     * Save a {@link ChannelAttributes}
-     * @param channelAttributesIn the channel attributes
+     * Save a {@link ChannelTemplate}
+     * @param channelTemplatesIn the channel attributes
      */
-    public static void save(ChannelAttributes channelAttributesIn) {
-        singleton.saveObject(channelAttributesIn);
+    public static void save(ChannelTemplate channelTemplatesIn) {
+        singleton.saveObject(channelTemplatesIn);
     }
 
     /**
-     * @return a list of all {@link ChannelAttributes}
+     * @return a list of all {@link ChannelTemplate}
      */
-    public static List<ChannelAttributes> allChannelAttributes() {
-        return getSession().createQuery("FROM ChannelAttributes", ChannelAttributes.class).list();
+    public static List<ChannelTemplate> allChannelTemplates() {
+        return getSession().createQuery("FROM ChannelTemplate", ChannelTemplate.class).list();
     }
 
     /**
@@ -113,10 +113,10 @@ public class SUSEProductFactory extends HibernateFactory {
     }
 
     /**
-     * @return map of all {@link ChannelAttributes} by ID triple
+     * @return map of all {@link ChannelTemplate} by ID triple
      */
-    public static Map<Tuple3<Long, Long, Long>, ChannelAttributes> allChannelAttributesByIds() {
-        return allChannelAttributes().stream().collect(
+    public static Map<Tuple3<Long, Long, Long>, ChannelTemplate> allChannelTemplatesByIds() {
+        return allChannelTemplates().stream().collect(
                 Collectors.toMap(
                         e -> new Tuple3<>(
                                 e.getRootProduct().getProductId(),
@@ -129,15 +129,15 @@ public class SUSEProductFactory extends HibernateFactory {
     }
 
     /**
-     * Return all {@link ChannelAttributes} with the given channel label.
+     * Return all {@link ChannelTemplate} with the given channel label.
      * In most cases the label is unique, but there are exceptions like SLES11 SP1/SP2 base channel
      * and products with rolling releases like CaaSP 1 and 2
      * @param channelLabel the channel label
-     * @return list of {@link ChannelAttributes}
+     * @return list of {@link ChannelTemplate}
      */
-    public static List<ChannelAttributes> lookupChannelAttributesByLabel(String channelLabel) {
+    public static List<ChannelTemplate> lookupChannelTemplatesByLabel(String channelLabel) {
         Session session = getSession();
-        return session.createQuery("FROM ChannelAttributes WHERE channelLabel = :label", ChannelAttributes.class)
+        return session.createQuery("FROM ChannelTemplate WHERE channelLabel = :label", ChannelTemplate.class)
                 .setParameter("label", channelLabel)
                 .list().stream()
                 .sorted((a, b) ->
@@ -197,22 +197,22 @@ public class SUSEProductFactory extends HibernateFactory {
      * @param name the channel name
      * @return list of found matches
      */
-    public static List<ChannelAttributes> lookupByChannelName(String name) {
+    public static List<ChannelTemplate> lookupByChannelName(String name) {
         CriteriaBuilder builder = getSession().getCriteriaBuilder();
-        CriteriaQuery<ChannelAttributes> criteria = builder.createQuery(ChannelAttributes.class);
-        Root<ChannelAttributes> root = criteria.from(ChannelAttributes.class);
+        CriteriaQuery<ChannelTemplate> criteria = builder.createQuery(ChannelTemplate.class);
+        Root<ChannelTemplate> root = criteria.from(ChannelTemplate.class);
         criteria.where(builder.equal(root.get("channelName"), name));
         return getSession().createQuery(criteria).getResultList();
     }
 
     /**
-     * Finds a ChannelAttributes entry by channel label.
+     * Finds a ChannelTemplate entry by channel label.
      * Note: this returns the entry with the newest product to make the result predictable.
      * @param channelLabel channel label
-     * @return ChannelAttributes entry with the newest product
+     * @return ChannelTemplate entry with the newest product
      */
-    public static Optional<ChannelAttributes> lookupChannelAttributesByLabelFirst(String channelLabel) {
-        return  lookupChannelAttributesByLabel(channelLabel)
+    public static Optional<ChannelTemplate> lookupChannelTemplatesByLabelFirst(String channelLabel) {
+        return  lookupChannelTemplatesByLabel(channelLabel)
                 .stream()
                 // We take the first item since there can be more than one entry.
                 // This only happens for sles11 sp1/2  and rolling release attempts like caasp 1/2
@@ -317,13 +317,13 @@ public class SUSEProductFactory extends HibernateFactory {
      * @param product product for which we want the channels
      * @param root root product under which the product sits (this is for disambiguation since a product by itself
      *             can have different channels depending on what root product it sits)
-     * @return a stream of ChannelAttributes since only synced channels have a channel instance
+     * @return a stream of ChannelTemplate since only synced channels have a channel instance
      */
-    public static Stream<ChannelAttributes> findAllMandatoryChannels(SUSEProduct product, SUSEProduct root) {
+    public static Stream<ChannelTemplate> findAllMandatoryChannels(SUSEProduct product, SUSEProduct root) {
         return Stream.concat(
-                product.getChannelAttributes()
+                product.getChannelTemplates()
                         .stream()
-                        .filter(ChannelAttributes::isMandatory)
+                        .filter(ChannelTemplate::isMandatory)
                         .filter(p -> p.getRootProduct().equals(root)),
                 SUSEProductFactory.findAllBaseProductsOf(product, root).stream()
                 .flatMap(p -> findAllMandatoryChannels(p, root))
@@ -337,8 +337,8 @@ public class SUSEProductFactory extends HibernateFactory {
      * @return suse product channel
      */
     public static Optional<SUSEProduct> findProductByChannelLabel(String channelLabel) {
-        return lookupChannelAttributesByLabelFirst(channelLabel)
-                .map(ChannelAttributes::getProduct);
+        return lookupChannelTemplatesByLabelFirst(channelLabel)
+                .map(ChannelTemplate::getProduct);
     }
 
     /**
@@ -347,8 +347,8 @@ public class SUSEProductFactory extends HibernateFactory {
      * @param channelLabel channel label
      * @return a stream of suse product channels which are required by the channel
      */
-    public static Stream<ChannelAttributes> findAllMandatoryChannels(String channelLabel) {
-        return lookupChannelAttributesByLabelFirst(channelLabel).map(spsr -> findAllMandatoryChannels(
+    public static Stream<ChannelTemplate> findAllMandatoryChannels(String channelLabel) {
+        return lookupChannelTemplatesByLabelFirst(channelLabel).map(spsr -> findAllMandatoryChannels(
                 spsr.getProduct(),
                 spsr.getRootProduct()
         )).orElseGet(Stream::empty);
@@ -357,12 +357,12 @@ public class SUSEProductFactory extends HibernateFactory {
     /**
      * Find not synced mandatory channels for a given channel label and return them as stream
      * @param channelLabel channel label
-     * @return stream of required {@link ChannelAttributes} representing channels
+     * @return stream of required {@link ChannelTemplate} representing channels
      */
-    public static Stream<ChannelAttributes> findNotSyncedMandatoryChannels(String channelLabel) {
+    public static Stream<ChannelTemplate> findNotSyncedMandatoryChannels(String channelLabel) {
         return findAllMandatoryChannels(channelLabel).
                 filter(spsr -> Objects.nonNull(ChannelFactory.lookupByLabel(spsr.getChannelLabel())))
-                .sorted(Comparator.comparing(ChannelAttributes::getParentChannelLabel,
+                .sorted(Comparator.comparing(ChannelTemplate::getParentChannelLabel,
                         Comparator.nullsFirst(Comparator.naturalOrder())));
     }
 
@@ -409,10 +409,10 @@ public class SUSEProductFactory extends HibernateFactory {
     }
 
     /**
-     * Delete a {@link ChannelAttributes} from the database.
+     * Delete a {@link ChannelTemplate} from the database.
      * @param productRepo product repository to be deleted.
      */
-    public static void remove(ChannelAttributes productRepo) {
+    public static void remove(ChannelTemplate productRepo) {
         singleton.removeObject(productRepo);
     }
 

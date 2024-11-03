@@ -27,7 +27,7 @@ import com.redhat.rhn.domain.channel.test.ChannelFamilyTest;
 import com.redhat.rhn.domain.common.ManagerInfoFactory;
 import com.redhat.rhn.domain.credentials.CredentialsFactory;
 import com.redhat.rhn.domain.credentials.SCCCredentials;
-import com.redhat.rhn.domain.product.ChannelAttributes;
+import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.product.ReleaseStage;
 import com.redhat.rhn.domain.product.SUSEProduct;
 import com.redhat.rhn.domain.product.SUSEProductChannel;
@@ -150,7 +150,7 @@ public class SUSEProductTestUtils extends HibernateFactory {
     }
 
     /**
-     * Create ChannelAttributes for the product
+     * Create ChannelTemplate for the product
      * @param baseProduct Base product
      * @param baseChannel base channe
      * @param product product
@@ -163,15 +163,15 @@ public class SUSEProductTestUtils extends HibernateFactory {
         SCCRepository repository = SUSEProductTestUtils.createSCCRepository();
         SUSEProductTestUtils.createSCCRepositoryTokenAuth(sccc, repository);
 
-        ChannelAttributes channelAttributes = new ChannelAttributes();
-        channelAttributes.setRepository(repository);
-        channelAttributes.setRootProduct(baseProduct);
-        channelAttributes.setProduct(product);
-        channelAttributes.setParentChannelLabel(baseChannel.getLabel());
-        channelAttributes.setChannelName(baseChannel.getLabel());
-        channelAttributes.setChannelLabel(channel.getLabel());
-        channelAttributes.setMandatory(true);
-        TestUtils.saveAndReload(channelAttributes);
+        ChannelTemplate channelTemplate = new ChannelTemplate();
+        channelTemplate.setRepository(repository);
+        channelTemplate.setRootProduct(baseProduct);
+        channelTemplate.setProduct(product);
+        channelTemplate.setParentChannelLabel(baseChannel.getLabel());
+        channelTemplate.setChannelName(baseChannel.getLabel());
+        channelTemplate.setChannelLabel(channel.getLabel());
+        channelTemplate.setMandatory(true);
+        TestUtils.saveAndReload(channelTemplate);
     }
 
     /**
@@ -610,9 +610,9 @@ public class SUSEProductTestUtils extends HibernateFactory {
 
     public static void addChannelsForProduct(SUSEProduct product) {
         ContentSyncManager csm = new ContentSyncManager();
-        product.getChannelAttributes()
+        product.getChannelTemplates()
         .stream()
-        .filter(ChannelAttributes::isMandatory)
+        .filter(ChannelTemplate::isMandatory)
         .forEach(pr -> {
             try {
                 if (pr.getParentChannelLabel() != null &&
@@ -638,7 +638,7 @@ public class SUSEProductTestUtils extends HibernateFactory {
     public static void addChannelsForProductAndParent(SUSEProduct product, SUSEProduct root,
             boolean mandatory, List<Long> optionalChannelIds) {
         ContentSyncManager csm = new ContentSyncManager();
-        product.getChannelAttributes()
+        product.getChannelTemplates()
         .stream()
         .filter(pr -> pr.getRootProduct().equals(root))
         .filter(pr -> (mandatory && pr.isMandatory()) || optionalChannelIds.contains(pr.getRepository().getSccId()))

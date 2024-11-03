@@ -31,12 +31,12 @@ import javax.persistence.Transient;
 import javax.persistence.UniqueConstraint;
 
 /**
- * ChannelAttributes - store attributes to create a channel for a product with given root product and a list of channels
+ * ChannelTemplate - store template to create a channel for a product with given root product and a list of channels
  */
 @Entity
-@Table(name = "suseChannelAttributes", uniqueConstraints =
-@UniqueConstraint(columnNames = {"product_id", "root_product_id", "repo_id"}))
-public class ChannelAttributes extends BaseDomainHelper {
+@Table(name = "suseChannelTemplate", uniqueConstraints =
+@UniqueConstraint(columnNames = {"product_id", "root_product_id", "channel_label"}))
+public class ChannelTemplate extends BaseDomainHelper {
 
     private Long id;
     private SUSEProduct product;

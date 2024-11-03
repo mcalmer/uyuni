@@ -27,7 +27,7 @@ import com.redhat.rhn.domain.channel.ChannelFactory;
 import com.redhat.rhn.domain.channel.ChannelFamily;
 import com.redhat.rhn.domain.channel.ChannelFamilyFactory;
 import com.redhat.rhn.domain.channel.test.ChannelFactoryTest;
-import com.redhat.rhn.domain.product.ChannelAttributes;
+import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.product.ReleaseStage;
 import com.redhat.rhn.domain.product.SUSEProduct;
 import com.redhat.rhn.domain.product.SUSEProductExtension;
@@ -520,12 +520,12 @@ public class ProductSyncManagerTest extends BaseTestCaseWithUser {
         var appModule = suseProductsMap.get("applications");
         var cntModule = suseProductsMap.get("containers");
 
-        createChannelAttributes(prefix, sles, sles, "SLES", "sles", null);
-        createChannelAttributes(prefix, sles, sles, "SLES", "sles-updates", null);
+        createChannelTemplate(prefix, sles, sles, "SLES", "sles", null);
+        createChannelTemplate(prefix, sles, sles, "SLES", "sles-updates", null);
 
-        createChannelAttributes(prefix, baseSystem, sles, "Module-Basesystem", "sle-basesystem", "sles");
-        createChannelAttributes(prefix, appModule, sles, "Module-Applications", "sle-applications", "sles");
-        createChannelAttributes(prefix, cntModule, sles, "Module-Containers", "sle-containers", "sles");
+        createChannelTemplate(prefix, baseSystem, sles, "Module-Basesystem", "sle-basesystem", "sles");
+        createChannelTemplate(prefix, appModule, sles, "Module-Applications", "sle-applications", "sles");
+        createChannelTemplate(prefix, cntModule, sles, "Module-Containers", "sle-containers", "sles");
     }
 
     private static void createSUSEProductExtensions(Map<String, SUSEProduct> suseProductsMap) {
@@ -551,20 +551,20 @@ public class ProductSyncManagerTest extends BaseTestCaseWithUser {
         return family;
     }
 
-    private static void createChannelAttributes(String prefix, SUSEProduct product, SUSEProduct root,
-                                                String channelName, String channelLabel,
-                                                String rootChannelLabel) {
+    private static void createChannelTemplate(String prefix, SUSEProduct product, SUSEProduct root,
+                                              String channelName, String channelLabel,
+                                              String rootChannelLabel) {
         var repo = SUSEProductTestUtils.createSCCRepository();
 
-        var channelAttrs = new ChannelAttributes();
-        channelAttrs.setProduct(product);
-        channelAttrs.setRootProduct(root);
-        channelAttrs.setRepository(repo);
-        channelAttrs.setChannelLabel(prefix + "-" + channelLabel);
-        channelAttrs.setParentChannelLabel(prefix + "-" + Objects.requireNonNullElse(rootChannelLabel, channelLabel));
-        channelAttrs.setChannelName(channelName);
-        channelAttrs.setMandatory(true);
-        TestUtils.saveAndReload(channelAttrs);
+        var channelTmpl = new ChannelTemplate();
+        channelTmpl.setProduct(product);
+        channelTmpl.setRootProduct(root);
+        channelTmpl.setRepository(repo);
+        channelTmpl.setChannelLabel(prefix + "-" + channelLabel);
+        channelTmpl.setParentChannelLabel(prefix + "-" + Objects.requireNonNullElse(rootChannelLabel, channelLabel));
+        channelTmpl.setChannelName(channelName);
+        channelTmpl.setMandatory(true);
+        TestUtils.saveAndReload(channelTmpl);
     }
 
     private static void createProductExtension(SUSEProduct product, SUSEProduct parent, SUSEProduct root) {

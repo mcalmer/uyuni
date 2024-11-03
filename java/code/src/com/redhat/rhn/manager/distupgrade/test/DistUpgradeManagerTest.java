@@ -39,7 +39,7 @@ import com.redhat.rhn.domain.channel.test.ChannelFactoryTest;
 import com.redhat.rhn.domain.credentials.SCCCredentials;
 import com.redhat.rhn.domain.iss.IssFactory;
 import com.redhat.rhn.domain.iss.IssMaster;
-import com.redhat.rhn.domain.product.ChannelAttributes;
+import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.product.ReleaseStage;
 import com.redhat.rhn.domain.product.SUSEProduct;
 import com.redhat.rhn.domain.product.SUSEProductExtension;
@@ -426,15 +426,15 @@ public class DistUpgradeManagerTest extends BaseTestCaseWithUser {
         SCCRepository addon = SUSEProductTestUtils.createSCCRepository();
         SUSEProductTestUtils.createSCCRepositoryTokenAuth(sccc, addon);
 
-        ChannelAttributes chanAttr = new ChannelAttributes();
-        chanAttr.setProduct(targetAddonProduct);
-        chanAttr.setRootProduct(targetBaseProduct);
-        chanAttr.setRepository(addon);
-        chanAttr.setChannelLabel("missing-addon-channel");
-        chanAttr.setParentChannelLabel(targetBaseChannel.getLabel());
-        chanAttr.setChannelName(targetBaseChannel.getLabel());
-        chanAttr.setMandatory(true);
-        chanAttr = TestUtils.saveAndReload(chanAttr);
+        ChannelTemplate chanTempl = new ChannelTemplate();
+        chanTempl.setProduct(targetAddonProduct);
+        chanTempl.setRootProduct(targetBaseProduct);
+        chanTempl.setRepository(addon);
+        chanTempl.setChannelLabel("missing-addon-channel");
+        chanTempl.setParentChannelLabel(targetBaseChannel.getLabel());
+        chanTempl.setChannelName(targetBaseChannel.getLabel());
+        chanTempl.setMandatory(true);
+        chanTempl = TestUtils.saveAndReload(chanTempl);
 
         // Verify that target products are returned correctly
 

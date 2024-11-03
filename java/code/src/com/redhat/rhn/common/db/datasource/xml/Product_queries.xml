@@ -32,9 +32,9 @@
             -- Extract all the mandatory channels for the given product ids
             SELECT sp.id, ca.channel_label AS label
               FROM suseproducts sp
-        INNER JOIN suseChannelAttributes ca ON sp.id = ca.product_id
+        INNER JOIN suseChannelTemplate ct ON sp.id = ct.product_id
              WHERE sp.product_id IN ( %s )
-               AND ca.mandatory = 'Y'
+               AND ct.mandatory = 'Y'
         ), custom_channels AS (
             -- Extract all the custom channels
             SELECT id, label

@@ -27,7 +27,7 @@ import com.redhat.rhn.domain.credentials.BaseCredentials;
 import com.redhat.rhn.domain.credentials.CloudCredentials;
 import com.redhat.rhn.domain.credentials.CloudRMTCredentials;
 import com.redhat.rhn.domain.credentials.CredentialsFactory;
-import com.redhat.rhn.domain.product.ChannelAttributes;
+import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.product.SUSEProduct;
 import com.redhat.rhn.domain.product.SUSEProductFactory;
 import com.redhat.rhn.domain.product.test.SUSEProductTestUtils;
@@ -187,21 +187,21 @@ public class PaygAuthDataProcessorTest extends BaseHandlerTestCase {
         SUSEProductTestUtils.createVendorSUSEProducts();
         SUSEProductFactory.findAllSUSEProducts()
                 .forEach(suseProduct -> CHANNEL_SUFFIX.forEach((suffix, installer) ->
-                        createChannelAttributes(suseProduct,
+                        createChannelTemplate(suseProduct,
                             createTestRepo(suseProduct.getName() + "-" +
                                     suseProduct.getVersion() + suffix, installer))));
     }
 
-    private ChannelAttributes createChannelAttributes(SUSEProduct suseProduct, SCCRepository sccRepository) {
-        ChannelAttributes productRepo = new ChannelAttributes();
-        productRepo.setProduct(suseProduct);
-        productRepo.setRootProduct(suseProduct);
-        productRepo.setRepository(sccRepository);
-        productRepo.setChannelLabel(sccRepository.getName());
-        productRepo.setParentChannelLabel(sccRepository.getName());
-        productRepo.setChannelName(sccRepository.getDescription());
-        productRepo.setMandatory(true);
-        return TestUtils.saveAndReload(productRepo);
+    private ChannelTemplate createChannelTemplate(SUSEProduct suseProduct, SCCRepository sccRepository) {
+        ChannelTemplate chanTempl = new ChannelTemplate();
+        chanTempl.setProduct(suseProduct);
+        chanTempl.setRootProduct(suseProduct);
+        chanTempl.setRepository(sccRepository);
+        chanTempl.setChannelLabel(sccRepository.getName());
+        chanTempl.setParentChannelLabel(sccRepository.getName());
+        chanTempl.setChannelName(sccRepository.getDescription());
+        chanTempl.setMandatory(true);
+        return TestUtils.saveAndReload(chanTempl);
     }
 
     private SCCRepository createTestRepo(String name, boolean installerUpdates) {

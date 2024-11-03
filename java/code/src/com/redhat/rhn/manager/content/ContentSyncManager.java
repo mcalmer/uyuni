@@ -33,7 +33,7 @@ import com.redhat.rhn.domain.credentials.CredentialsFactory;
 import com.redhat.rhn.domain.credentials.RemoteCredentials;
 import com.redhat.rhn.domain.credentials.SCCCredentials;
 import com.redhat.rhn.domain.iss.IssFactory;
-import com.redhat.rhn.domain.product.ChannelAttributes;
+import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.product.MgrSyncChannelDto;
 import com.redhat.rhn.domain.product.ProductType;
 import com.redhat.rhn.domain.product.ReleaseStage;
@@ -371,7 +371,7 @@ public class ContentSyncManager {
         for (Channel sc : syncedChannels) {
             List<SUSEProductChannel> spcList = SUSEProductFactory.lookupSyncedProductChannelsByLabel(sc.getLabel());
             if (spcList.isEmpty()) {
-                List<ChannelAttributes> missingData = SUSEProductFactory.lookupChannelAttributesByLabel(sc.getLabel());
+                List<ChannelTemplate> missingData = SUSEProductFactory.lookupChannelTemplatesByLabel(sc.getLabel());
                 missingData.forEach(md -> {
                     SUSEProductChannel correctedData = new SUSEProductChannel();
                     correctedData.setProduct(md.getProduct());
@@ -390,7 +390,7 @@ public class ContentSyncManager {
     private List<MgrSyncProductDto> listProductsImpl() {
         List<String> installedChannelLabels = getInstalledChannelLabels();
 
-        List<Tuple2<ChannelAttributes, MgrSyncStatus>> availableChannels =
+        List<Tuple2<ChannelTemplate, MgrSyncStatus>> availableChannels =
                 TimeUtils.logTime(LOG, "getAvailableCHannels", this::getAvailableChannels).stream().map(e -> {
                     MgrSyncStatus status = installedChannelLabels.contains(e.getChannelLabel()) ?
                             MgrSyncStatus.INSTALLED : MgrSyncStatus.AVAILABLE;
@@ -411,9 +411,9 @@ public class ContentSyncManager {
         );
 
 
-        Map<Long, List<Tuple2<ChannelAttributes, MgrSyncStatus>>> byProductId = availableChannels.stream()
+        Map<Long, List<Tuple2<ChannelTemplate, MgrSyncStatus>>> byProductId = availableChannels.stream()
                 .collect(Collectors.groupingBy(p -> p.getA().getProduct().getId()));
-        Map<Long, List<Tuple2<ChannelAttributes, MgrSyncStatus>>> byRootId = availableChannels.stream()
+        Map<Long, List<Tuple2<ChannelTemplate, MgrSyncStatus>>> byRootId = availableChannels.stream()
                 .collect(Collectors.groupingBy(p -> p.getA().getRootProduct().getId()));
 
         return roots.stream()
@@ -423,18 +423,18 @@ public class ContentSyncManager {
                     var exts = byRootId.get(root.getId()).stream()
                             .filter(p -> !p.getA().getProduct().equals(root));
 
-                    var channelAttrs = byProductId.get(root.getId());
+                    var channelTempl = byProductId.get(root.getId());
 
-                    var partitionBaseChannels = channelAttrs.stream()
+                    var partitionBaseChannels = channelTempl.stream()
                             .collect(Collectors.partitioningBy(p -> p.getA().getParentChannelLabel() == null));
 
                     var baseChannel = partitionBaseChannels.get(true).stream()
                         // for RHEL and Vmware which have multiple base channels for a product
                         .sorted(Comparator.comparing(a -> a.getA().getChannelLabel()));
 
-                    List<Tuple2<ChannelAttributes, MgrSyncStatus>> childChannelAttr = partitionBaseChannels.get(false);
+                    List<Tuple2<ChannelTemplate, MgrSyncStatus>> childChannelTempl = partitionBaseChannels.get(false);
 
-                    Set<MgrSyncChannelDto> allChannels = childChannelAttr.stream().map(c -> new MgrSyncChannelDto(
+                    Set<MgrSyncChannelDto> allChannels = childChannelTempl.stream().map(c -> new MgrSyncChannelDto(
                             c.getA().getChannelName(),
                             c.getA().getChannelLabel(),
                             c.getA().getProduct().getFriendlyName(),
@@ -792,15 +792,15 @@ public class ContentSyncManager {
         }
         //BOTH
         //Not in product tree
-        else if (repo.getChannelAttributes().isEmpty()) {
+        else if (repo.getChannelTemplates().isEmpty()) {
             LOG.debug("Repo '{}' not in the product tree. Skipping", repo.getUrl());
             return Optional.empty();
         }
         //SCC
         //Not Local Dir and free product (to avoid expensive accessibleUrl check for free products)
         else if (!(c instanceof LocalDirContentSyncSource) &&
-                repo.getChannelAttributes().stream()
-                        .map(ChannelAttributes::getProduct)
+                repo.getChannelTemplates().stream()
+                        .map(ChannelTemplate::getProduct)
                         //TODO: check what free means in scc and if it works for us
                         .filter(SUSEProduct::getFree)
                         .anyMatch(p -> {
@@ -985,7 +985,7 @@ public class ContentSyncManager {
 
     private void generatePtfChannels(List<SCCRepositoryJson> repositories) {
         List<SCCRepository> reposToSave = new ArrayList<>();
-        List<ChannelAttributes> channelAttrToSave = new ArrayList<>();
+        List<ChannelTemplate> channelTemplToSave = new ArrayList<>();
         for (SCCRepositoryJson jRepo : repositories) {
             PtfProductRepositoryInfo ptfInfo = parsePtfInfoFromUrl(jRepo);
             if (ptfInfo == null) {
@@ -999,15 +999,15 @@ public class ContentSyncManager {
             }
 
             rootProducts.stream()
-                    .map(root -> convertToChannelAttributes(root, ptfInfo))
+                    .map(root -> convertToChannelTemplate(root, ptfInfo))
                     .filter(Objects::nonNull)
-                    .forEach(channelAttrToSave::add);
+                    .forEach(channelTemplToSave::add);
 
             reposToSave.add(ptfInfo.getRepository());
         }
 
         reposToSave.forEach(SUSEProductFactory::save);
-        channelAttrToSave.forEach(SUSEProductFactory::save);
+        channelTemplToSave.forEach(SUSEProductFactory::save);
     }
 
     private static PtfProductRepositoryInfo parsePtfInfoFromUrl(SCCRepositoryJson jrepo) {
@@ -1056,29 +1056,29 @@ public class ContentSyncManager {
         return new PtfProductRepositoryInfo(product, repo, channelParts, prdArch);
     }
 
-    private static ChannelAttributes convertToChannelAttributes(SUSEProduct root,
-                                                                PtfProductRepositoryInfo ptfInfo) {
-        ChannelAttributes channelAttributes = new ChannelAttributes();
+    private static ChannelTemplate convertToChannelTemplate(SUSEProduct root,
+                                                            PtfProductRepositoryInfo ptfInfo) {
+        ChannelTemplate channelTemplate = new ChannelTemplate();
 
-        channelAttributes.setProduct(ptfInfo.getProduct());
-        channelAttributes.setRepository(ptfInfo.getRepository());
-        channelAttributes.setRootProduct(root);
+        channelTemplate.setProduct(ptfInfo.getProduct());
+        channelTemplate.setRepository(ptfInfo.getRepository());
+        channelTemplate.setRootProduct(root);
 
-        channelAttributes.setUpdateTag(null);
-        channelAttributes.setMandatory(false);
+        channelTemplate.setUpdateTag(null);
+        channelTemplate.setMandatory(false);
 
         // Current PTF key for SLE 12/15 and SLE-Micro
-        channelAttributes.setGpgKeyUrl("file:///usr/lib/rpm/gnupg/keys/suse_ptf_key.asc");
+        channelTemplate.setGpgKeyUrl("file:///usr/lib/rpm/gnupg/keys/suse_ptf_key.asc");
 
         ptfInfo.getProduct()
-                .getChannelAttributes()
+                .getChannelTemplates()
                 .stream()
                 .filter(r -> r.getRootProduct().equals(root) && r.getParentChannelLabel() != null)
                 .findFirst()
                 .ifPresent(r -> {
                     List<String> suffix = new ArrayList<>();
 
-                    channelAttributes.setParentChannelLabel(r.getParentChannelLabel());
+                    channelTemplate.setParentChannelLabel(r.getParentChannelLabel());
                     int archIdx = r.getChannelName().lastIndexOf(ptfInfo.getArchitecture());
                     if (archIdx > -1) {
                         suffix = Arrays.asList(
@@ -1090,16 +1090,16 @@ public class ContentSyncManager {
                             .filter(e -> !e.isBlank())
                             .collect(Collectors.toList());
 
-                    channelAttributes.setChannelLabel(String.join("-", cList).toLowerCase()
+                    channelTemplate.setChannelLabel(String.join("-", cList).toLowerCase()
                             .replaceAll("( for | )", "-"));
-                    channelAttributes.setChannelName(String.join(" ", cList));
+                    channelTemplate.setChannelName(String.join(" ", cList));
                 });
-        if (StringUtils.isBlank(channelAttributes.getChannelLabel())) {
+        if (StringUtils.isBlank(channelTemplate.getChannelLabel())) {
             // mandatory field is missing. This happens when a product does not have suseProductSCCRepositories
             LOG.info("Product '{}' does not have repositories. Skipping.", root);
             return null;
         }
-        return channelAttributes;
+        return channelTemplate;
     }
 
     /**
@@ -1712,8 +1712,8 @@ public class ContentSyncManager {
                 .stream().collect(Collectors.toMap(PackageArch::getLabel, a -> a));
         Map<String, ChannelFamily> channelFamilyMap = ChannelFamilyFactory.getAllChannelFamilies()
                 .stream().collect(Collectors.toMap(ChannelFamily::getLabel, cf -> cf));
-        Map<Tuple3<Long, Long, Long>, ChannelAttributes> dbChannelAttrsByIds =
-                SUSEProductFactory.allChannelAttributesByIds();
+        Map<Tuple3<Long, Long, Long>, ChannelTemplate> dbChannelTemplByIds =
+                SUSEProductFactory.allChannelTemplatesByIds();
         Map<Long, SUSEProduct> dbProductsById = SUSEProductFactory.findAllSUSEProducts().stream()
                 .collect(Collectors.toMap(SUSEProduct::getProductId, p -> p));
         Map<Long, SCCRepository> dbReposById = SCCCachingFactory.lookupRepositories().stream()
@@ -1791,7 +1791,7 @@ public class ContentSyncManager {
                             return r;
                         })).collect(Collectors.toMap(SCCRepository::getSccId, p -> p));
 
-        Map<Tuple3<Long, Long, Long>, ChannelAttributes> channelAttrsToSave = new HashMap<>();
+        Map<Tuple3<Long, Long, Long>, ChannelTemplate> channelTemplToSave = new HashMap<>();
         Map<Tuple3<Long, Long, Long>, SUSEProductExtension> extensionsToSave = new HashMap<>();
         Set<String> channelsToCleanup = new HashSet<>();
 
@@ -1815,81 +1815,81 @@ public class ContentSyncManager {
                 Optional<SUSEProduct> parent = parentJson.flatMap(Function.identity())
                         .map(p -> productMap.get(p.getId()));
 
-                ChannelAttributes channelAttributes = Opt.fold(Optional.ofNullable(dbChannelAttrsByIds.get(ids)),
+                ChannelTemplate channelTemplate = Opt.fold(Optional.ofNullable(dbChannelTemplByIds.get(ids)),
                         () -> {
                             SCCRepository repo = repoMap.get(repoJson.getSCCId());
                             repo.setSigned(entry.isSigned());
 
-                            ChannelAttributes attributes = new ChannelAttributes();
-                            attributes.setUpdateTag(entry.getUpdateTag().orElse(null));
-                            attributes.setChannelLabel(entry.getChannelLabel());
-                            attributes.setParentChannelLabel(entry.getParentChannelLabel().orElse(null));
-                            attributes.setChannelName(entry.getChannelName());
-                            attributes.setMandatory(entry.isMandatory());
-                            attributes.setProduct(product);
-                            attributes.setRepository(repo);
-                            attributes.setRootProduct(root);
+                            ChannelTemplate template = new ChannelTemplate();
+                            template.setUpdateTag(entry.getUpdateTag().orElse(null));
+                            template.setChannelLabel(entry.getChannelLabel());
+                            template.setParentChannelLabel(entry.getParentChannelLabel().orElse(null));
+                            template.setChannelName(entry.getChannelName());
+                            template.setMandatory(entry.isMandatory());
+                            template.setProduct(product);
+                            template.setRepository(repo);
+                            template.setRootProduct(root);
                             if (!entry.getGpgInfo().isEmpty()) {
-                                attributes.setGpgKeyUrl(entry.getGpgInfo()
+                                template.setGpgKeyUrl(entry.getGpgInfo()
                                         .stream().map(GpgInfoEntry::getUrl).collect(Collectors.joining(" ")));
                                 // we use only the 1st entry for id and fingerprint
-                                attributes.setGpgKeyId(entry.getGpgInfo().get(0).getKeyId());
-                                attributes.setGpgKeyFingerprint(entry.getGpgInfo().get(0).getFingerprint());
+                                template.setGpgKeyId(entry.getGpgInfo().get(0).getKeyId());
+                                template.setGpgKeyFingerprint(entry.getGpgInfo().get(0).getFingerprint());
                             }
-                            dbChannelAttrsByIds.put(ids, attributes);
+                            dbChannelTemplByIds.put(ids, template);
 
                             if (productIdsSwitchedToReleased.contains(entry.getProductId())) {
                                 channelsToCleanup.add(entry.getChannelLabel());
                             }
-                            repo.addChannelAttribute(attributes);
-                            return attributes;
-                        }, attributesIn -> {
+                            repo.addChannelTemplate(template);
+                            return template;
+                        }, templateIn -> {
                             if (entry.getReleaseStage() != ReleaseStage.released) {
                                 // Only allowed to change in Alpha or Beta stage
-                                attributesIn.setUpdateTag(entry.getUpdateTag().orElse(null));
-                                attributesIn.setChannelLabel(entry.getChannelLabel());
-                                attributesIn.setParentChannelLabel(entry.getParentChannelLabel().orElse(null));
+                                templateIn.setUpdateTag(entry.getUpdateTag().orElse(null));
+                                templateIn.setChannelLabel(entry.getChannelLabel());
+                                templateIn.setParentChannelLabel(entry.getParentChannelLabel().orElse(null));
                             }
                             else {
                                 if (!entry.getParentChannelLabel()
-                                        .equals(Optional.ofNullable(attributesIn.getParentChannelLabel()))) {
+                                        .equals(Optional.ofNullable(templateIn.getParentChannelLabel()))) {
                                     LOG.error("parent_channel_label changed from '{}' to '{}' but its not allowed " +
-                                                    "to change.", attributesIn.getParentChannelLabel(),
+                                                    "to change.", templateIn.getParentChannelLabel(),
                                             entry.getParentChannelLabel());
                                 }
 
                                 if (!entry.getUpdateTag()
-                                        .equals(Optional.ofNullable(attributesIn.getUpdateTag()))) {
+                                        .equals(Optional.ofNullable(templateIn.getUpdateTag()))) {
                                     LOG.debug("updatetag changed from '{}' to '{}' but its not allowed to change.",
-                                            attributesIn.getUpdateTag(), entry.getUpdateTag());
+                                            templateIn.getUpdateTag(), entry.getUpdateTag());
                                 }
 
-                                if (!entry.getChannelLabel().equals(attributesIn.getChannelLabel())) {
+                                if (!entry.getChannelLabel().equals(templateIn.getChannelLabel())) {
                                     LOG.error("channel_label changed from '{}' to '{}' but its not allowed to change.",
-                                            attributesIn.getChannelLabel(), entry.getChannelLabel());
+                                            templateIn.getChannelLabel(), entry.getChannelLabel());
                                 }
                             }
                             // Allowed to change also in released stage
-                            attributesIn.setChannelName(entry.getChannelName());
-                            attributesIn.setMandatory(entry.isMandatory());
-                            attributesIn.getRepository().setSigned(entry.isSigned());
+                            templateIn.setChannelName(entry.getChannelName());
+                            templateIn.setMandatory(entry.isMandatory());
+                            templateIn.getRepository().setSigned(entry.isSigned());
                             if (!entry.getGpgInfo().isEmpty()) {
-                                attributesIn.setGpgKeyUrl(entry.getGpgInfo()
+                                templateIn.setGpgKeyUrl(entry.getGpgInfo()
                                         .stream().map(GpgInfoEntry::getUrl).collect(Collectors.joining(" ")));
                                 // we use only the 1st entry for id and fingerprint
-                                attributesIn.setGpgKeyId(entry.getGpgInfo().get(0).getKeyId());
-                                attributesIn.setGpgKeyFingerprint(entry.getGpgInfo().get(0).getFingerprint());
+                                templateIn.setGpgKeyId(entry.getGpgInfo().get(0).getKeyId());
+                                templateIn.setGpgKeyFingerprint(entry.getGpgInfo().get(0).getFingerprint());
                             }
                             else {
-                                attributesIn.setGpgKeyUrl(null);
-                                attributesIn.setGpgKeyId(null);
-                                attributesIn.setGpgKeyFingerprint(null);
+                                templateIn.setGpgKeyUrl(null);
+                                templateIn.setGpgKeyId(null);
+                                templateIn.setGpgKeyFingerprint(null);
                             }
 
                             if (productIdsSwitchedToReleased.contains(entry.getProductId())) {
                                 channelsToCleanup.add(entry.getChannelLabel());
                             }
-                            return attributesIn;
+                            return templateIn;
                         });
 
                 parent.ifPresent(p -> {
@@ -1906,7 +1906,7 @@ public class ContentSyncManager {
                     extensionsToSave.put(peId, pe);
                 });
 
-                channelAttrsToSave.put(ids, channelAttributes);
+                channelTemplToSave.put(ids, channelTemplate);
             }
         });
 
@@ -1917,8 +1917,8 @@ public class ContentSyncManager {
                 .forEach(SUSEProductFactory::remove);
 
 
-        dbChannelAttrsByIds.entrySet().stream()
-                .filter(e -> !channelAttrsToSave.containsKey(e.getKey()))
+        dbChannelTemplByIds.entrySet().stream()
+                .filter(e -> !channelTemplToSave.containsKey(e.getKey()))
                 .map(Map.Entry::getValue)
                 .forEach(SUSEProductFactory::remove);
 
@@ -1933,7 +1933,7 @@ public class ContentSyncManager {
         productMap.values().forEach(SUSEProductFactory::save);
         extensionsToSave.values().forEach(SUSEProductFactory::save);
         repoMap.values().forEach(SUSEProductFactory::save);
-        channelAttrsToSave.values().forEach(SUSEProductFactory::save);
+        channelTemplToSave.values().forEach(SUSEProductFactory::save);
 
         ChannelFactory.listVendorChannels().forEach(c -> {
             updateChannel(c);
@@ -2009,27 +2009,27 @@ public class ContentSyncManager {
      * @return true in case of all mandatory repos could be mirrored, otherwise false
      */
     public static boolean isProductAvailable(SUSEProduct product, SUSEProduct root) {
-        Set<ChannelAttributes> attributes = product.getChannelAttributes();
-        if (attributes == null) {
+        Set<ChannelTemplate> templates = product.getChannelTemplates();
+        if (templates == null) {
             return false;
         }
-        return !attributes.isEmpty() && attributes.stream()
+        return !templates.isEmpty() && templates.stream()
                 .filter(e -> e.getRootProduct().equals(root))
-                .filter(ChannelAttributes::isMandatory)
+                .filter(ChannelTemplate::isMandatory)
                 .allMatch(ContentSyncManager::isRepoAccessible);
     }
 
-    private static boolean isRepoAccessible(ChannelAttributes attributesIn) {
-        boolean isPublic = attributesIn.getProduct().getChannelFamily().isPublic();
-        boolean isAvailable = ChannelFactory.lookupByLabel(attributesIn.getChannelLabel()) != null;
+    private static boolean isRepoAccessible(ChannelTemplate templateIn) {
+        boolean isPublic = templateIn.getProduct().getChannelFamily().isPublic();
+        boolean isAvailable = ChannelFactory.lookupByLabel(templateIn.getChannelLabel()) != null;
         boolean isISSSlave = IssFactory.getCurrentMaster() != null;
         boolean isMirrorable = false;
         if (!isISSSlave) {
-            isMirrorable = attributesIn.getRepository().isAccessible();
+            isMirrorable = templateIn.getRepository().isAccessible();
         }
         LOG.debug("{} - {} isPublic: {} isMirrorable: {} isISSSlave: {} isAvailable: {}",
-                attributesIn.getProduct().getFriendlyName(),
-                attributesIn.getChannelLabel(), isPublic, isMirrorable, isISSSlave, isAvailable);
+                templateIn.getProduct().getFriendlyName(),
+                templateIn.getChannelLabel(), isPublic, isMirrorable, isISSSlave, isAvailable);
         return  isPublic && (isMirrorable || isISSSlave || isAvailable);
     }
 
@@ -2039,13 +2039,13 @@ public class ContentSyncManager {
      * @param product product to get available repositories from
      * @return stream of available channels of product
      */
-    private Stream<ChannelAttributes> getAvailableChannelAttributes(SUSEProduct root, SUSEProduct product) {
-        List<ChannelAttributes> allEntries = SUSEProductFactory.allChannelAttributes();
+    private Stream<ChannelTemplate> getAvailableChannelTemplates(SUSEProduct root, SUSEProduct product) {
+        List<ChannelTemplate> allEntries = SUSEProductFactory.allChannelTemplates();
         List<Long> repoIdsWithAuth = SCCCachingFactory.lookupRepositoryIdsWithAuth();
 
-        Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelAttributes>> entriesByProducts = allEntries.stream()
+        Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelTemplate>> entriesByProducts = allEntries.stream()
                 .collect(Collectors.groupingBy(e -> new Tuple2<>(e.getRootProduct(), e.getProduct())));
-        return getAvailableChannelAttributes(root, product, entriesByProducts, repoIdsWithAuth);
+        return getAvailableChannelTemplates(root, product, entriesByProducts, repoIdsWithAuth);
     }
 
     /**
@@ -2056,18 +2056,18 @@ public class ContentSyncManager {
      * @param repoIdsWithAuth lookup list for all authenticated repositories by id
      * @return stream of available channels of product
      */
-    private Stream<ChannelAttributes> getAvailableChannelAttributes(
+    private Stream<ChannelTemplate> getAvailableChannelTemplates(
         SUSEProduct root,
         SUSEProduct product,
-        Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelAttributes>> allEntries,
+        Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelTemplate>> allEntries,
         List<Long> repoIdsWithAuth
     ) {
 
-        List<ChannelAttributes> entries =
+        List<ChannelTemplate> entries =
                 Optional.ofNullable(allEntries.get(new Tuple2<>(root, product)))
                         .orElseGet(Collections::emptyList);
         boolean isAccessible = entries.stream()
-                .filter(ChannelAttributes::isMandatory)
+                .filter(ChannelTemplate::isMandatory)
                 .allMatch(entry -> {
                     boolean isPublic = entry.getProduct().getChannelFamily().isPublic();
                     boolean hasAuth = repoIdsWithAuth.contains(entry.getRepository().getId());
@@ -2080,7 +2080,7 @@ public class ContentSyncManager {
 
             if (LOG.isDebugEnabled()) {
                 LOG.debug("{}: {} {}", product.getFriendlyName(), isAccessible, entries.stream()
-                        .map(ChannelAttributes::getChannelLabel)
+                        .map(ChannelTemplate::getChannelLabel)
                         .collect(Collectors.joining(",")));
             }
 
@@ -2091,7 +2091,7 @@ public class ContentSyncManager {
                     ),
                     SUSEProductFactory.findAllExtensionProductsForRootOf(product, root).stream()
                             .flatMap(nextProduct ->
-                                    getAvailableChannelAttributes(root, nextProduct, allEntries, repoIdsWithAuth))
+                                    getAvailableChannelTemplates(root, nextProduct, allEntries, repoIdsWithAuth))
             );
         }
         else {
@@ -2104,18 +2104,18 @@ public class ContentSyncManager {
      * as well as some other criteria.
      * @return list of available channels
      */
-    public List<ChannelAttributes> getAvailableChannels() {
-        List<ChannelAttributes> allEntries = SUSEProductFactory.allChannelAttributes();
+    public List<ChannelTemplate> getAvailableChannels() {
+        List<ChannelTemplate> allEntries = SUSEProductFactory.allChannelTemplates();
         List<Long> repoIdsWithAuth = SCCCachingFactory.lookupRepositoryIdsWithAuth();
 
-        Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelAttributes>> entriesByProducts = allEntries.stream()
+        Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelTemplate>> entriesByProducts = allEntries.stream()
                 .collect(Collectors.groupingBy(e -> new Tuple2<>(e.getRootProduct(), e.getProduct())));
 
         return allEntries.stream()
-                .filter(ChannelAttributes::isRoot)
-                .map(ChannelAttributes::getProduct)
+                .filter(ChannelTemplate::isRoot)
+                .map(ChannelTemplate::getProduct)
                 .distinct()
-                .flatMap(p -> getAvailableChannelAttributes(p, p, entriesByProducts, repoIdsWithAuth))
+                .flatMap(p -> getAvailableChannelTemplates(p, p, entriesByProducts, repoIdsWithAuth))
                 .collect(Collectors.toList());
     }
 
@@ -2185,40 +2185,40 @@ public class ContentSyncManager {
         String label = dbChannel.getLabel();
         boolean regenPillar = false;
 
-        List<ChannelAttributes> channelAttributes = SUSEProductFactory.lookupChannelAttributesByLabel(label);
-        Optional<ChannelAttributes> chanAttrOpt = channelAttributes.stream().findFirst();
-        if (chanAttrOpt.isEmpty()) {
+        List<ChannelTemplate> channelTemplates = SUSEProductFactory.lookupChannelTemplatesByLabel(label);
+        Optional<ChannelTemplate> chanTemplOpt = channelTemplates.stream().findFirst();
+        if (chanTemplOpt.isEmpty()) {
             LOG.warn("Expired Vendor Channel with label '{}' found. To remove it please run: ", label);
             LOG.warn("spacewalk-remove-channel -c {}", label);
         }
         else {
-            ChannelAttributes chanAttr = chanAttrOpt.get();
-            SUSEProduct product = chanAttr.getProduct();
+            ChannelTemplate chanTempl = chanTemplOpt.get();
+            SUSEProduct product = chanTempl.getProduct();
 
             // update only the fields which are save to be updated
             dbChannel.setChannelFamily(product.getChannelFamily());
-            dbChannel.setName(chanAttr.getChannelName());
+            dbChannel.setName(chanTempl.getChannelName());
             dbChannel.setSummary(product.getFriendlyName());
             dbChannel.setDescription(
                     Optional.ofNullable(product.getDescription())
                             .orElse(product.getFriendlyName()));
             dbChannel.setProduct(MgrSyncUtils.findOrCreateChannelProduct(product));
             dbChannel.setProductName(MgrSyncUtils.findOrCreateProductName(product.getName()));
-            dbChannel.setUpdateTag(chanAttr.getUpdateTag());
-            dbChannel.setInstallerUpdates(chanAttr.getRepository().isInstallerUpdates());
-            if (!Objects.equals(dbChannel.getGPGKeyUrl(), chanAttr.getGpgKeyUrl())) {
-                dbChannel.setGPGKeyUrl(chanAttr.getGpgKeyUrl());
+            dbChannel.setUpdateTag(chanTempl.getUpdateTag());
+            dbChannel.setInstallerUpdates(chanTempl.getRepository().isInstallerUpdates());
+            if (!Objects.equals(dbChannel.getGPGKeyUrl(), chanTempl.getGpgKeyUrl())) {
+                dbChannel.setGPGKeyUrl(chanTempl.getGpgKeyUrl());
                 regenPillar = true;
             }
-            dbChannel.setGPGKeyId(chanAttr.getGpgKeyId());
-            dbChannel.setGPGKeyFp(chanAttr.getGpgKeyFingerprint());
+            dbChannel.setGPGKeyId(chanTempl.getGpgKeyId());
+            dbChannel.setGPGKeyFp(chanTempl.getGpgKeyFingerprint());
             ChannelFactory.save(dbChannel);
 
             // update Mandatory Flag
             for (SUSEProductChannel pc : dbChannel.getSuseProductChannels()) {
-                for (ChannelAttributes ca : channelAttributes) {
-                    if (ca.getProduct().equals(pc.getProduct()) && ca.isMandatory() != pc.isMandatory()) {
-                        pc.setMandatory(ca.isMandatory());
+                for (ChannelTemplate ct : channelTemplates) {
+                    if (ct.getProduct().equals(pc.getProduct()) && ct.isMandatory() != pc.isMandatory()) {
+                        pc.setMandatory(ct.isMandatory());
                         regenPillar = true;
                         SUSEProductFactory.save(pc);
                     }
@@ -2247,22 +2247,22 @@ public class ContentSyncManager {
             }
             return;
         }
-        List<ChannelAttributes> channelAttributes = SUSEProductFactory.lookupChannelAttributesByLabel(label);
-        List<SUSEProduct> products = channelAttributes.stream()
-                .map(ChannelAttributes::getProduct).collect(Collectors.toList());
-        Opt.consume(channelAttributes.stream().findFirst(),
+        List<ChannelTemplate> channelTemplates = SUSEProductFactory.lookupChannelTemplatesByLabel(label);
+        List<SUSEProduct> products = channelTemplates.stream()
+                .map(ChannelTemplate::getProduct).collect(Collectors.toList());
+        Opt.consume(channelTemplates.stream().findFirst(),
                 () -> {
                     throw new ContentSyncException("No product tree entry found for label: '" + label + "'");
                 },
-                chanAttr -> {
-                    SUSEProduct product = chanAttr.getProduct();
+                chanTempl -> {
+                    SUSEProduct product = chanTempl.getProduct();
 
-                    if (getAvailableChannelAttributes(chanAttr.getRootProduct(), product)
+                    if (getAvailableChannelTemplates(chanTempl.getRootProduct(), product)
                             .noneMatch(e -> e.getChannelLabel().equals(label))) {
                         throw new ContentSyncException("Channel is not available: " + label);
                     }
 
-                    SCCRepository repository = chanAttr.getRepository();
+                    SCCRepository repository = chanTempl.getRepository();
                     if (!repository.isAccessible()) {
                         throw new ContentSyncException("Channel is not mirrorable: " + label);
                     }
@@ -2279,18 +2279,18 @@ public class ContentSyncManager {
                     // channel['summary'] = product.get('uiname')
                     // channel['description'] = product.find('description').text or channel['summary']
                     dbChannel.setLabel(label);
-                    dbChannel.setName(chanAttr.getChannelName());
+                    dbChannel.setName(chanTempl.getChannelName());
                     dbChannel.setSummary(product.getFriendlyName());
                     dbChannel.setDescription(
                             Optional.ofNullable(product.getDescription()).orElse(product.getFriendlyName()));
-                    dbChannel.setParentChannel(MgrSyncUtils.getChannel(chanAttr.getParentChannelLabel()));
+                    dbChannel.setParentChannel(MgrSyncUtils.getChannel(chanTempl.getParentChannelLabel()));
                     dbChannel.setProduct(MgrSyncUtils.findOrCreateChannelProduct(product));
                     dbChannel.setProductName(MgrSyncUtils.findOrCreateProductName(product.getName()));
-                    dbChannel.setUpdateTag(chanAttr.getUpdateTag());
+                    dbChannel.setUpdateTag(chanTempl.getUpdateTag());
                     dbChannel.setInstallerUpdates(repository.isInstallerUpdates());
-                    dbChannel.setGPGKeyUrl(chanAttr.getGpgKeyUrl());
-                    dbChannel.setGPGKeyId(chanAttr.getGpgKeyId());
-                    dbChannel.setGPGKeyFp(chanAttr.getGpgKeyFingerprint());
+                    dbChannel.setGPGKeyUrl(chanTempl.getGpgKeyUrl());
+                    dbChannel.setGPGKeyId(chanTempl.getGpgKeyId());
+                    dbChannel.setGPGKeyFp(chanTempl.getGpgKeyFingerprint());
 
                     // Create or link the content source
                     Optional<SCCRepositoryAuth> auth = repository.getBestAuth();
@@ -2299,7 +2299,7 @@ public class ContentSyncManager {
                         ContentSource source = ChannelFactory.findVendorContentSourceByRepo(url);
                         if (source == null) {
                             source = new ContentSource();
-                            source.setLabel(chanAttr.getChannelLabel());
+                            source.setLabel(chanTempl.getChannelLabel());
                             source.setMetadataSigned(repository.isSigned());
                             source.setOrg(null);
                             source.setSourceUrl(url);
@@ -2322,7 +2322,7 @@ public class ContentSyncManager {
                         SUSEProductChannel spc = new SUSEProductChannel();
                         spc.setProduct(p);
                         spc.setChannel(dbChannel);
-                        spc.setMandatory(chanAttr.isMandatory());
+                        spc.setMandatory(chanTempl.isMandatory());
                         SUSEProductFactory.save(spc);
                     }
                 });
@@ -2565,7 +2565,7 @@ public class ContentSyncManager {
      * @return true if the given label reserved.
      */
     public static boolean isChannelLabelReserved(String label) {
-        return !SUSEProductFactory.lookupChannelAttributesByLabel(label).isEmpty();
+        return !SUSEProductFactory.lookupChannelTemplatesByLabel(label).isEmpty();
     }
 
     /**
@@ -2607,8 +2607,8 @@ public class ContentSyncManager {
         return SCCCachingFactory.lookupRepositoryAuth().stream()
                 .filter(a -> a.cloudRmtAuth().isPresent())
                 .map(SCCRepositoryAuth::getRepo)
-                .flatMap(r -> r.getChannelAttributes().stream())
-                .map(ChannelAttributes::getProduct)
+                .flatMap(r -> r.getChannelTemplates().stream())
+                .map(ChannelTemplate::getProduct)
                 .filter(p -> p.getChannelFamily() != null)
                 .anyMatch(p -> p.getChannelFamily().getLabel().equals(ChannelFamilyFactory.TOOLS_CHANNEL_FAMILY_LABEL));
     }
