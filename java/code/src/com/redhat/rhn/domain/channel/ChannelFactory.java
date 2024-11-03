@@ -25,7 +25,7 @@ import com.redhat.rhn.common.hibernate.HibernateFactory;
 import com.redhat.rhn.domain.common.ChecksumType;
 import com.redhat.rhn.domain.kickstart.KickstartableTree;
 import com.redhat.rhn.domain.org.Org;
-import com.redhat.rhn.domain.product.ChannelAttributes;
+import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.rhnpackage.Package;
 import com.redhat.rhn.domain.scc.SCCRepository;
 import com.redhat.rhn.domain.server.Server;
@@ -164,9 +164,9 @@ public class ChannelFactory extends HibernateFactory {
                 SELECT X.*, 0 as clazz_ FROM (
                     SELECT c.*,
                            (SELECT COUNT(*)
-                              FROM suseChannelAttributes ca
-                              JOIN suseChannelRepository cr ON ca.id = cr.sccchannel_id
-                             WHERE ca.channel_label = c.label) sccrepositorycount,
+                              FROM suseChannelTemplate ct
+                              JOIN suseChannelTemplateRepository cr ON ct.id = cr.sccchannel_id
+                             WHERE ct.channel_label = c.label) sccrepositorycount,
                            (SELECT COUNT(*)
                               FROM rhnChannelContentSource ccs
                              WHERE ccs.channel_id = c.id) contentsourcecount
@@ -174,7 +174,7 @@ public class ChannelFactory extends HibernateFactory {
                      WHERE c.org_id IS NULL) X
                  WHERE X.sccrepositorycount > X.contentsourcecount;
                 """, Channel.class)
-                .addSynchronizedEntityClass(ChannelAttributes.class)
+                .addSynchronizedEntityClass(ChannelTemplate.class)
                 .addSynchronizedEntityClass(Channel.class)
                 .addSynchronizedEntityClass(SCCRepository.class)
                 .addSynchronizedEntityClass(ContentSource.class)

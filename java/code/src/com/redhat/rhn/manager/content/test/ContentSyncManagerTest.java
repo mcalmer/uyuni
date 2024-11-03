@@ -2578,14 +2578,14 @@ public class ContentSyncManagerTest extends JMockBaseTestCaseWithUser {
                 fail("unexpected content source: " + cs);
             }
         }
-        List<ChannelAttributes> ca = csm.getAvailableChannels();
+        List<ChannelTemplate> ct = csm.getAvailableChannels();
 
-        assertTrue(ca.stream()
-                .map(ChannelAttributes::getChannelLabel)
+        assertTrue(ct.stream()
+                .map(ChannelTemplate::getChannelLabel)
                 .anyMatch(label -> label.equals("sle-module-basesystem15-pool-x86_64")),
                 "Expected entry not available");
-        assertTrue(ca.stream()
-                        .map(ChannelAttributes::getChannelLabel)
+        assertTrue(ct.stream()
+                        .map(ChannelTemplate::getChannelLabel)
                         .anyMatch(label -> label.equals("sle-module-basesystem15-updates-x86_64")),
                 "Expected entry not available");
 
@@ -2641,13 +2641,13 @@ public class ContentSyncManagerTest extends JMockBaseTestCaseWithUser {
                 fail("unexpected content source: " + cs);
             }
         }
-        ca = csm.getAvailableChannels();
-        assertTrue(ca.stream()
-                        .map(ChannelAttributes::getChannelLabel)
+        ct = csm.getAvailableChannels();
+        assertTrue(ct.stream()
+                        .map(ChannelTemplate::getChannelLabel)
                         .anyMatch(label -> label.equals("sle-module-basesystem15-pool-x86_64")),
                 "Expected entry not available");
-        assertTrue(ca.stream()
-                        .map(ChannelAttributes::getChannelLabel)
+        assertTrue(ct.stream()
+                        .map(ChannelTemplate::getChannelLabel)
                         .anyMatch(label -> label.equals("sle-module-basesystem15-updates-x86_64")),
                 "Expected entry not available");
         assertTrue(ContentSyncManager.isProductAvailable(product, rootProduct), "Expected Product not available");
