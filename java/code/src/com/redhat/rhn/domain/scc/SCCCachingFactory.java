@@ -22,7 +22,6 @@ import com.redhat.rhn.domain.channel.ContentSource;
 import com.redhat.rhn.domain.credentials.Credentials;
 import com.redhat.rhn.domain.credentials.RemoteCredentials;
 import com.redhat.rhn.domain.credentials.SCCCredentials;
-import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.product.SUSEProduct;
 import com.redhat.rhn.domain.product.SUSEProductFactory;
 import com.redhat.rhn.domain.server.Server;
@@ -485,12 +484,12 @@ public class SCCCachingFactory extends HibernateFactory {
     }
 
     /**
-     * Returns a set of repositories for a root product
+     * Returns a stream of repositories for a root product
      *
      * @param productName name of the product we want to filter
      * @param productVersion version of the product we want to filter
      * @param archName arch name we want to filter
-     * @return Set of repositories for one root product with extensions
+     * @return Stream of repositories for one root product with extensions
      */
     public static Stream<SCCRepository> lookupRepositoriesByRootProductNameVersionArchForPayg(
             String productName, String productVersion, String archName) {
@@ -505,7 +504,7 @@ public class SCCCachingFactory extends HibernateFactory {
         return prds.stream()
                 .filter(p -> cfList.contains(p.getChannelFamily().getLabel()))
                 .flatMap(p -> p.getChannelTemplates().stream())
-                .map(ChannelTemplate::getRepository);
+                .flatMap(ct -> ct.getRepositories().stream());
         }
 
     /**

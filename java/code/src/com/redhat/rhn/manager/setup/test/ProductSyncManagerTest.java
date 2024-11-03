@@ -559,7 +559,7 @@ public class ProductSyncManagerTest extends BaseTestCaseWithUser {
         var channelTmpl = new ChannelTemplate();
         channelTmpl.setProduct(product);
         channelTmpl.setRootProduct(root);
-        channelTmpl.setRepository(repo);
+        channelTmpl.addRepository(repo);
         channelTmpl.setChannelLabel(prefix + "-" + channelLabel);
         channelTmpl.setParentChannelLabel(prefix + "-" + Objects.requireNonNullElse(rootChannelLabel, channelLabel));
         channelTmpl.setChannelName(channelName);

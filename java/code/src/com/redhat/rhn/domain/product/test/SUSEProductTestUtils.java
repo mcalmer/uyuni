@@ -164,7 +164,7 @@ public class SUSEProductTestUtils extends HibernateFactory {
         SUSEProductTestUtils.createSCCRepositoryTokenAuth(sccc, repository);
 
         ChannelTemplate channelTemplate = new ChannelTemplate();
-        channelTemplate.setRepository(repository);
+        channelTemplate.addRepository(repository);
         channelTemplate.setRootProduct(baseProduct);
         channelTemplate.setProduct(product);
         channelTemplate.setParentChannelLabel(baseChannel.getLabel());
@@ -636,12 +636,14 @@ public class SUSEProductTestUtils extends HibernateFactory {
      * @param optionalChannelIds list of optional channels ids to add
      */
     public static void addChannelsForProductAndParent(SUSEProduct product, SUSEProduct root,
-            boolean mandatory, List<Long> optionalChannelIds) {
+            boolean mandatory, Set<Long> optionalChannelIds) {
         ContentSyncManager csm = new ContentSyncManager();
         product.getChannelTemplates()
         .stream()
-        .filter(pr -> pr.getRootProduct().equals(root))
-        .filter(pr -> (mandatory && pr.isMandatory()) || optionalChannelIds.contains(pr.getRepository().getSccId()))
+        .filter(ca -> ca.getRootProduct().equals(root))
+        .filter(ca -> (mandatory && ca.isMandatory()) ||
+                optionalChannelIds.containsAll(ca.getRepositories().stream()
+                        .map(SCCRepository::getSccId).collect(Collectors.toSet())))
         .forEach(pr -> {
             try {
                 if (pr.getParentChannelLabel() != null &&

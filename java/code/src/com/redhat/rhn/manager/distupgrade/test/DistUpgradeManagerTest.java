@@ -429,7 +429,7 @@ public class DistUpgradeManagerTest extends BaseTestCaseWithUser {
         ChannelTemplate chanTempl = new ChannelTemplate();
         chanTempl.setProduct(targetAddonProduct);
         chanTempl.setRootProduct(targetBaseProduct);
-        chanTempl.setRepository(addon);
+        chanTempl.addRepository(addon);
         chanTempl.setChannelLabel("missing-addon-channel");
         chanTempl.setParentChannelLabel(targetBaseChannel.getLabel());
         chanTempl.setChannelName(targetBaseChannel.getLabel());
