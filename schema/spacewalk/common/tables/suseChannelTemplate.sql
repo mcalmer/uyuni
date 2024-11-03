@@ -9,16 +9,16 @@
 -- http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 --
 
-CREATE TABLE suseChannelAttributes
+CREATE TABLE suseChannelTemplate
 (
-    id                     BIGINT CONSTRAINT suse_chanatt_id_pk PRIMARY KEY
+    id                     BIGINT CONSTRAINT suse_chantpl_id_pk PRIMARY KEY
                                   GENERATED ALWAYS AS IDENTITY,
     product_id             NUMERIC NOT NULL
-                                  CONSTRAINT suse_chanatt_pid_fk
+                                  CONSTRAINT suse_chantpl_pid_fk
                                   REFERENCES suseProducts (id)
                                   ON DELETE CASCADE,
     root_product_id        NUMERIC NOT NULL
-                                  CONSTRAINT suse_chanatt_rpid_fk
+                                  CONSTRAINT suse_chantpl_rpid_fk
                                   REFERENCES suseProducts (id)
                                   ON DELETE CASCADE,
     channel_label          VARCHAR(128) not null,
@@ -35,11 +35,11 @@ CREATE TABLE suseChannelAttributes
                            DEFAULT (current_timestamp) NOT NULL
 );
 
-CREATE UNIQUE INDEX suse_chanatt_pid_rpid_chl_uq
-ON suseChannelAttributes (product_id, root_product_id, channel_label);
+CREATE UNIQUE INDEX suse_chantpl_pid_rpid_chl_uq
+ON suseChannelTemplate (product_id, root_product_id, channel_label);
 
-CREATE INDEX suse_chanatt_rpid_idx
-ON suseChannelAttributes (root_product_id);
+CREATE INDEX suse_chantpl_rpid_idx
+ON suseChannelTemplate (root_product_id);
 
-CREATE INDEX suse_chanatt_chl_idx
-ON suseChannelAttributes (channel_label);
+CREATE INDEX suse_chantpl_chl_idx
+ON suseChannelTemplate (channel_label);

@@ -9,11 +9,11 @@
 -- http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 --
 
-CREATE TABLE suseChannelRepository
+CREATE TABLE suseChannelTemplateRepository
 (
     sccchannel_id  BIGINT NOT NULL
                      CONSTRAINT suse_chanrepo_cid_fk
-                         REFERENCES suseChannelAttributes (id)
+                         REFERENCES suseChannelTemplate (id)
                          ON DELETE CASCADE,
     sccrepo_id     NUMERIC NOT NULL
                      CONSTRAINT suse_chanrepo_rid_fk
@@ -22,7 +22,7 @@ CREATE TABLE suseChannelRepository
 );
 
 CREATE UNIQUE INDEX suse_chanrepo_cid_rid_uq
-    ON suseChannelRepository (sccchannel_id, sccrepo_id);
+    ON suseChannelTemplateRepository (sccchannel_id, sccrepo_id);
 
 CREATE INDEX suse_chanrepo_rid_idx
-    ON suseChannelRepository(sccrepo_id);
+    ON suseChannelTemplateRepository (sccrepo_id);

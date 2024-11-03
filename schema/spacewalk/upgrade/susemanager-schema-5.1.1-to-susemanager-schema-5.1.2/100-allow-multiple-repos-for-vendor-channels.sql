@@ -9,16 +9,16 @@
 -- http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt.
 --
 
-CREATE TABLE IF NOT EXISTS suseChannelAttributes
+CREATE TABLE IF NOT EXISTS suseChannelTemplate
 (
-    id                     BIGINT CONSTRAINT suse_chanatt_id_pk PRIMARY KEY
+    id                     BIGINT CONSTRAINT suse_chantpl_id_pk PRIMARY KEY
                                   GENERATED ALWAYS AS IDENTITY,
     product_id             NUMERIC NOT NULL
-                                  CONSTRAINT suse_chanatt_pid_fk
+                                  CONSTRAINT suse_chantpl_pid_fk
                                   REFERENCES suseProducts (id)
                                   ON DELETE CASCADE,
     root_product_id        NUMERIC NOT NULL
-                                  CONSTRAINT suse_chanatt_rpid_fk
+                                  CONSTRAINT suse_chantpl_rpid_fk
                                   REFERENCES suseProducts (id)
                                   ON DELETE CASCADE,
     channel_label          VARCHAR(128) not null,
@@ -35,22 +35,22 @@ CREATE TABLE IF NOT EXISTS suseChannelAttributes
                            DEFAULT (current_timestamp) NOT NULL
 );
 
-CREATE UNIQUE INDEX IF NOT EXISTS suse_chanatt_pid_rpid_chl_uq
-ON suseChannelAttributes (product_id, root_product_id, channel_label);
+CREATE UNIQUE INDEX IF NOT EXISTS suse_chantpl_pid_rpid_chl_uq
+ON suseChannelTemplate (product_id, root_product_id, channel_label);
 
-CREATE INDEX IF NOT EXISTS suse_chanatt_rpid_idx
-ON suseChannelAttributes (root_product_id);
+CREATE INDEX IF NOT EXISTS suse_chantpl_rpid_idx
+ON suseChannelTemplate (root_product_id);
 
-CREATE INDEX IF NOT EXISTS suse_chanatt_chl_idx
-ON suseChannelAttributes (channel_label);
+CREATE INDEX IF NOT EXISTS suse_chantpl_chl_idx
+ON suseChannelTemplate (channel_label);
 
 ------------------------------------------------------------------
 
-CREATE TABLE IF NOT EXISTS suseChannelRepository
+CREATE TABLE IF NOT EXISTS suseChannelTemplateRepository
 (
     sccchannel_id  BIGINT NOT NULL
                      CONSTRAINT suse_chanrepo_cid_fk
-                         REFERENCES suseChannelAttributes (id)
+                         REFERENCES suseChannelTemplate (id)
                          ON DELETE CASCADE,
     sccrepo_id     NUMERIC NOT NULL
                      CONSTRAINT suse_chanrepo_rid_fk
@@ -59,10 +59,10 @@ CREATE TABLE IF NOT EXISTS suseChannelRepository
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS suse_chanrepo_cid_rid_uq
-    ON suseChannelRepository (sccchannel_id, sccrepo_id);
+    ON suseChannelTemplateRepository (sccchannel_id, sccrepo_id);
 
 CREATE INDEX IF NOT EXISTS suse_chanrepo_rid_idx
-    ON suseChannelRepository(sccrepo_id);
+    ON suseChannelTemplateRepository(sccrepo_id);
 
 ------------------------------------------------------------------
 
@@ -70,16 +70,16 @@ ALTER TABLE suseSCCRepository
   ADD COLUMN IF NOT EXISTS
     nonoss CHAR(1) DEFAULT ('N') NOT NULL CONSTRAINT suse_sccrepo_nonoss_ck CHECK (nonoss in ('Y', 'N'));
 
-INSERT INTO suseChannelAttributes (product_id, root_product_id, channel_label, parent_channel_label, channel_name, mandatory, update_tag, gpg_key_url, gpg_key_id, gpg_key_fp)
+INSERT INTO suseChannelTemplate (product_id, root_product_id, channel_label, parent_channel_label, channel_name, mandatory, update_tag, gpg_key_url, gpg_key_id, gpg_key_fp)
 SELECT product_id, root_product_id, channel_label, parent_channel_label, channel_name, CASE mandatory WHEN 'Y' THEN true ELSE false END AS mandatory, update_tag, gpg_key_url, gpg_key_id, gpg_key_fp
     FROM suseProductSCCRepository
 ORDER BY id
 ON CONFLICT DO NOTHING;
 
-INSERT INTO suseChannelRepository
+INSERT INTO suseChannelTemplateRepository
   SELECT ca.id, spcr.repo_id
 FROM suseProductSCCRepository spcr
-JOIN suseChannelAttributes ca ON ca.channel_label = spcr.channel_label AND ca.product_id = spcr.product_id AND ca.root_product_id = spcr.root_product_id
+JOIN suseChannelTemplate ca ON ca.channel_label = spcr.channel_label AND ca.product_id = spcr.product_id AND ca.root_product_id = spcr.root_product_id
 ON CONFLICT DO NOTHING;
 
 DROP INDEX IF EXISTS suse_prdrepo_pid_rpid_rid_uq;
