@@ -77,9 +77,9 @@ ORDER BY id
 ON CONFLICT DO NOTHING;
 
 INSERT INTO suseChannelTemplateRepository
-  SELECT ca.id, spcr.repo_id
+  SELECT ct.id, spcr.repo_id
 FROM suseProductSCCRepository spcr
-JOIN suseChannelTemplate ca ON ca.channel_label = spcr.channel_label AND ca.product_id = spcr.product_id AND ca.root_product_id = spcr.root_product_id
+JOIN suseChannelTemplate ct ON ct.channel_label = spcr.channel_label AND ct.product_id = spcr.product_id AND ct.root_product_id = spcr.root_product_id
 ON CONFLICT DO NOTHING;
 
 DROP INDEX IF EXISTS suse_prdrepo_pid_rpid_rid_uq;
