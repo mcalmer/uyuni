@@ -22,7 +22,7 @@ import com.redhat.rhn.domain.channel.ContentSource;
 import com.redhat.rhn.domain.credentials.Credentials;
 import com.redhat.rhn.domain.credentials.RemoteCredentials;
 import com.redhat.rhn.domain.credentials.SCCCredentials;
-import com.redhat.rhn.domain.product.ChannelAttributes;
+import com.redhat.rhn.domain.product.ChannelTemplate;
 import com.redhat.rhn.domain.product.SUSEProduct;
 import com.redhat.rhn.domain.product.SUSEProductFactory;
 import com.redhat.rhn.domain.server.Server;
@@ -466,13 +466,13 @@ public class SCCCachingFactory extends HibernateFactory {
      */
     public static List<SCCRepository> lookupRepositoriesByChannelFamily(String channelFamily) {
         // Writing this in 1 query does not work as this query get sometimes stuck in DB.
-        List<ChannelAttributes> cas = getSession().createQuery("SELECT ca from SUSEProduct p " +
+        List<ChannelTemplate> cts = getSession().createQuery("SELECT ct from SUSEProduct p " +
                                 "JOIN p.channelFamily cf " +
-                                "JOIN p.channelAttributes ca " +
+                                "JOIN p.channelTemplate ct " +
                                 "WHERE cf.label = :channelFamily",
-                        ChannelAttributes.class)
+                        ChannelTemplate.class)
                 .setParameter("channelFamily", channelFamily).getResultList();
-        return cas.stream()
+        return cts.stream()
                 .flatMap(ca -> ca.getRepositories().stream())
                 .distinct().collect(Collectors.toList());
     }
