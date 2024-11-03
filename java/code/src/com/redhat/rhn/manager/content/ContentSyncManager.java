@@ -1873,10 +1873,10 @@ public class ContentSyncManager {
                             repoListJson.forEach(repoJson -> {
                                 SCCRepository repo = repoMap.get(repoJson.getSCCId());
                                 repo.setSigned(entry.isSigned());
-                                repo.addChannelAttribute(attributesIn);
+                                repo.addChannelTemplate(templateIn);
                                 repos.add(repo);
                             });
-                            attributesIn.setRepositories(repos);
+                            templateIn.setRepositories(repos);
 
                             if (productIdsSwitchedToReleased.contains(entry.getProductId())) {
                                 channelsToCleanup.add(entry.getChannelLabel());
@@ -2018,8 +2018,8 @@ public class ContentSyncManager {
             isMirrorable = true;
         }
         else {
-            isMirrorable = !attributesIn.getRepositories().isEmpty();
-            for (SCCRepository r : attributesIn.getRepositories()) {
+            isMirrorable = !templateIn.getRepositories().isEmpty();
+            for (SCCRepository r : templateIn.getRepositories()) {
                 isMirrorable = isMirrorable && (r.isAccessible() || r.isNonOss());
             }
         }
@@ -2201,8 +2201,9 @@ public class ContentSyncManager {
             dbChannel.setProduct(MgrSyncUtils.findOrCreateChannelProduct(product));
             dbChannel.setProductName(MgrSyncUtils.findOrCreateProductName(product.getName()));
             dbChannel.setUpdateTag(chanTempl.getUpdateTag());
+            dbChannel.setInstallerUpdates(lookupLeadRepository(chanTempl.getRepositories()).isInstallerUpdates());
 
-            dbChannel.setInstallerUpdates(lookupLeadRepository(chanTmpl.getRepositories()).isInstallerUpdates());
+            if (!Objects.equals(dbChannel.getGPGKeyUrl(), chanTempl.getGpgKeyUrl())) {
                 dbChannel.setGPGKeyUrl(chanTempl.getGpgKeyUrl());
                 regenPillar = true;
             }
@@ -2210,7 +2211,7 @@ public class ContentSyncManager {
             dbChannel.setGPGKeyFp(chanTempl.getGpgKeyFingerprint());
 
             // Create or link the content source
-            for (SCCRepository repository : chanAttr.getRepositories()) {
+            for (SCCRepository repository : chanTempl.getRepositories()) {
                 if (!repository.isAccessible() && repository.isNonOss()) {
                     // Non OSS repositories which are not accessible can be skipped
                     continue;
@@ -2221,7 +2222,7 @@ public class ContentSyncManager {
                     ContentSource source = ChannelFactory.findVendorContentSourceByRepo(url);
                     if (source == null) {
                         source = new ContentSource();
-                        source.setLabel(chanAttr.getChannelLabel());
+                        source.setLabel(chanTempl.getChannelLabel());
                         source.setMetadataSigned(repository.isSigned());
                         source.setOrg(null);
                         source.setSourceUrl(url);
@@ -2288,7 +2289,7 @@ public class ContentSyncManager {
                     }
 
                     Set<SCCRepository> repositories = chanTempl.getRepositories();
-                    if (!isRepoAccessible(chanAttr)) {
+                    if (!isRepoAccessible(chanTempl)) {
                         throw new ContentSyncException("Channel is not mirrorable: " + label);
                     }
 

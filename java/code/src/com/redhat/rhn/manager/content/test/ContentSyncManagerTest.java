@@ -764,7 +764,7 @@ public class ContentSyncManagerTest extends JMockBaseTestCaseWithUser {
 
         SUSEProduct slesChanged = SUSEProductFactory.lookupByProductId(1117);
         slesChanged.getChannelTemplates().stream()
-                .filter(ChannelAttributes::isMandatory)
+                .filter(ChannelTemplate::isMandatory)
                 .peek(ca -> assertNotNull(ca.getRepositories()))
                 .flatMap(ca -> ca.getRepositories().stream())
                 .forEach(r -> {
@@ -1999,7 +1999,7 @@ public class ContentSyncManagerTest extends JMockBaseTestCaseWithUser {
 
         SUSEProduct ubuntu = SUSEProductFactory.lookupByProductId(-18L);
         ubuntu.getChannelTemplates().stream()
-                .filter(ChannelAttributes::isMandatory)
+                .filter(ChannelTemplate::isMandatory)
                 .peek(ca -> assertNotNull(ca.getRepositories()))
                 .flatMap(ca -> ca.getRepositories().stream())
                 .peek(r -> LOGGER.info("Repository {}", r.getName()))

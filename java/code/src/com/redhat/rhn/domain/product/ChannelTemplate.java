@@ -65,7 +65,7 @@ public class ChannelTemplate extends BaseDomainHelper {
     /**
      * Constructor
      */
-    public ChannelAttributes() {
+    public ChannelTemplate() {
     }
 
     /**
@@ -74,7 +74,7 @@ public class ChannelTemplate extends BaseDomainHelper {
      * @param rootIn the root product
      * @param productIn the product
      */
-    public ChannelAttributes(ProductTreeEntry entry, SUSEProduct rootIn, SUSEProduct productIn) {
+    public ChannelTemplate(ProductTreeEntry entry, SUSEProduct rootIn, SUSEProduct productIn) {
         setUpdateTag(entry.getUpdateTag().orElse(null));
         setChannelLabel(entry.getChannelLabel());
         setParentChannelLabel(entry.getParentChannelLabel().orElse(null));
@@ -124,7 +124,7 @@ public class ChannelTemplate extends BaseDomainHelper {
      */
     @ManyToMany(cascade = { CascadeType.ALL })
     @JoinTable(
-        name = "suseChannelRepository",
+        name = "suseChannelTemplateRepository",
         joinColumns = { @JoinColumn(name = "sccchannel_id") },
         inverseJoinColumns = { @JoinColumn(name = "sccrepo_id") }
     )
@@ -300,19 +300,19 @@ public class ChannelTemplate extends BaseDomainHelper {
      */
     @Override
     public boolean equals(Object other) {
-        if (!(other instanceof ChannelAttributes)) {
+        if (!(other instanceof ChannelTemplate)) {
             return false;
         }
-        ChannelAttributes otherChanAttr = (ChannelAttributes) other;
+        ChannelTemplate otherChanTempl = (ChannelTemplate) other;
         return new EqualsBuilder()
-                .append(getChannelLabel(), otherChanAttr.getChannelLabel())
-                .append(getProduct(), otherChanAttr.getProduct())
-                .append(getRootProduct(), otherChanAttr.getRootProduct())
-                .append(getRepositories(), otherChanAttr.getRepositories())
-                .append(getChannelName(), otherChanAttr.getChannelName())
-                .append(isMandatory(), otherChanAttr.isMandatory())
-                .append(getUpdateTag(), otherChanAttr.getUpdateTag())
-                .append(getGpgKeyUrl(), otherChanAttr.getGpgKeyUrl())
+                .append(getChannelLabel(), otherChanTempl.getChannelLabel())
+                .append(getProduct(), otherChanTempl.getProduct())
+                .append(getRootProduct(), otherChanTempl.getRootProduct())
+                .append(getRepositories(), otherChanTempl.getRepositories())
+                .append(getChannelName(), otherChanTempl.getChannelName())
+                .append(isMandatory(), otherChanTempl.isMandatory())
+                .append(getUpdateTag(), otherChanTempl.getUpdateTag())
+                .append(getGpgKeyUrl(), otherChanTempl.getGpgKeyUrl())
                 .isEquals();
     }
 
