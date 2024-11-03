@@ -512,7 +512,7 @@ public class SCCCachingFactory extends HibernateFactory {
                 ChannelFamilyFactory.MODULE_CHANNEL_FAMILY_LABEL);
         return prds.stream()
                 .filter(p -> cfList.contains(p.getChannelFamily().getLabel()))
-                .flatMap(p -> p.getChannelTemplates().stream())
+                .flatMap(p -> p.getChannelTemplate().stream())
                 .flatMap(ct -> ct.getRepositories().stream());
         }
 

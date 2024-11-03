@@ -336,14 +336,14 @@ public class SUSEProduct extends BaseDomainHelper implements Serializable {
     /**
      * @return Returns the channel templates for SCC.
      */
-    public Set<ChannelTemplate> getChannelTemplates() {
+    public Set<ChannelTemplate> getChannelTemplate() {
         return channelTemplates;
     }
 
     /**
      * @param channelTemplatesIn The channel templates to set.
      */
-    public void setChannelTemplates(Set<ChannelTemplate> channelTemplatesIn) {
+    public void setChannelTemplate(Set<ChannelTemplate> channelTemplatesIn) {
         this.channelTemplates = channelTemplatesIn;
     }
 

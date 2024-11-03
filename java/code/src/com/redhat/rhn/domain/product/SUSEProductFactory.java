@@ -321,7 +321,7 @@ public class SUSEProductFactory extends HibernateFactory {
      */
     public static Stream<ChannelTemplate> findAllMandatoryChannels(SUSEProduct product, SUSEProduct root) {
         return Stream.concat(
-                product.getChannelTemplates()
+                product.getChannelTemplate()
                         .stream()
                         .filter(ChannelTemplate::isMandatory)
                         .filter(p -> p.getRootProduct().equals(root)),

@@ -1107,7 +1107,7 @@ public class ContentSyncManager {
         channelTemplate.setGpgKeyUrl("file:///usr/lib/rpm/gnupg/keys/suse_ptf_key.asc");
 
         ptfInfo.getProduct()
-                .getChannelTemplates()
+                .getChannelTemplate()
                 .stream()
                 .filter(r -> r.getRootProduct().equals(root) && r.getParentChannelLabel() != null)
                 .findFirst()
@@ -2026,7 +2026,7 @@ public class ContentSyncManager {
      * @return true in case of all mandatory repos could be mirrored, otherwise false
      */
     public static boolean isProductAvailable(SUSEProduct product, SUSEProduct root) {
-        Set<ChannelTemplate> templates = product.getChannelTemplates();
+        Set<ChannelTemplate> templates = product.getChannelTemplate();
         if (templates == null) {
             return false;
         }

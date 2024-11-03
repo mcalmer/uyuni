@@ -697,7 +697,7 @@ PUBLIC "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
           SELECT DISTINCT {r.*}
             FROM rhnChannel c
             JOIN suseChannelTemplate ct ON c.label = ct.channel_label
-            JOIN suseChannelRepository cr ON ca.id = cr.sccchannel_id
+            JOIN suseChannelTemplateRepository cr ON ct.id = cr.sccchannel_id
             JOIN suseSCCRepository r ON cr.sccrepo_id = r.id
            WHERE c.org_id IS NULL
             AND c.id = :cid

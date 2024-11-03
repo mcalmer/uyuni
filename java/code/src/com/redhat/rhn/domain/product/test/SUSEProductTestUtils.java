@@ -610,7 +610,7 @@ public class SUSEProductTestUtils extends HibernateFactory {
 
     public static void addChannelsForProduct(SUSEProduct product) {
         ContentSyncManager csm = new ContentSyncManager();
-        product.getChannelTemplates()
+        product.getChannelTemplate()
         .stream()
         .filter(ChannelTemplate::isMandatory)
         .forEach(pr -> {
@@ -638,7 +638,7 @@ public class SUSEProductTestUtils extends HibernateFactory {
     public static void addChannelsForProductAndParent(SUSEProduct product, SUSEProduct root,
             boolean mandatory, Set<Long> optionalChannelIds) {
         ContentSyncManager csm = new ContentSyncManager();
-        product.getChannelTemplates()
+        product.getChannelTemplate()
         .stream()
         .filter(ca -> ca.getRootProduct().equals(root))
         .filter(ca -> (mandatory && ca.isMandatory()) ||

@@ -50,8 +50,8 @@ import javax.persistence.Transient;
                     "where r.url like :urlEndpoint")
 @NamedQuery(name = "SCCRepository.lookupByProductNameAndArchForPayg",
             query = "select distinct r from SCCRepository r " +
-                    " join r.channelAttributes ca " +
-                    " join ca.product p " +
+                    " join r.channelTemplates ct " +
+                    " join ct.product p " +
                     " join p.arch a " +
                     " where lower(p.name) = lower(:product_name) " +
                     " and lower(a.label) = lower(:arch_name) " +
