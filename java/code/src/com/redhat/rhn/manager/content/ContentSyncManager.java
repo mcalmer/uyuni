@@ -2038,10 +2038,13 @@ public class ContentSyncManager {
     private Stream<ChannelTemplate> getAvailableChannelTemplates(SUSEProduct root, SUSEProduct product) {
         List<ChannelTemplate> allEntries = SUSEProductFactory.allChannelTemplates();
         List<Long> repoIdsWithAuth = SCCCachingFactory.lookupRepositoryIdsWithAuth();
+        Map<Tuple2<SUSEProduct, SUSEProduct>, List<SUSEProductExtension>> allSUSEProdExt =
+                SUSEProductFactory.findAllSUSEProductExtensions().stream()
+                        .collect(Collectors.groupingBy(e -> new Tuple2<>(e.getRootProduct(), e.getBaseProduct())));
 
         Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelTemplate>> entriesByProducts = allEntries.stream()
                 .collect(Collectors.groupingBy(e -> new Tuple2<>(e.getRootProduct(), e.getProduct())));
-        return getAvailableChannelTemplates(root, product, entriesByProducts, repoIdsWithAuth);
+        return getAvailableChannelTemplates(root, product, entriesByProducts, repoIdsWithAuth, allSUSEProdExt);
     }
 
     /**
@@ -2056,11 +2059,12 @@ public class ContentSyncManager {
         SUSEProduct root,
         SUSEProduct product,
         Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelTemplate>> allEntries,
-        List<Long> repoIdsWithAuth
+        List<Long> repoIdsWithAuth,
+        Map<Tuple2<SUSEProduct, SUSEProduct>, List<SUSEProductExtension>> allSUSEProdExt
     ) {
-
+        Tuple2<SUSEProduct, SUSEProduct> rootProductTuple = new Tuple2<>(root, product);
         List<ChannelTemplate> entries =
-                Optional.ofNullable(allEntries.get(new Tuple2<>(root, product)))
+                Optional.ofNullable(allEntries.get(rootProductTuple))
                         .orElseGet(Collections::emptyList);
         boolean isAccessible = entries.stream()
                 .filter(ChannelTemplate::isMandatory)
@@ -2085,9 +2089,13 @@ public class ContentSyncManager {
                     entries.stream().filter(e -> e.isMandatory() ||
                             repoIdsWithAuth.contains(lookupLeadRepository(e.getRepositories()).getId())
                     ),
-                    SUSEProductFactory.findAllExtensionProductsForRootOf(product, root).stream()
-                            .flatMap(nextProduct ->
-                                    getAvailableChannelTemplates(root, nextProduct, allEntries, repoIdsWithAuth))
+                    // We iterate recursively to not evaluate extensions when the parent is not accessible
+                    Optional.ofNullable(allSUSEProdExt.get(rootProductTuple))
+                            .orElse(new ArrayList<>())
+                            .stream()
+                            .map(SUSEProductExtension::getExtensionProduct)
+                            .flatMap(nextProduct -> getAvailableChannelTemplates(root, nextProduct, allEntries,
+                                    repoIdsWithAuth, allSUSEProdExt))
             );
         }
         else {
@@ -2103,6 +2111,9 @@ public class ContentSyncManager {
     public List<ChannelTemplate> getAvailableChannels() {
         List<ChannelTemplate> allEntries = SUSEProductFactory.allChannelTemplates();
         List<Long> repoIdsWithAuth = SCCCachingFactory.lookupRepositoryIdsWithAuth();
+        Map<Tuple2<SUSEProduct, SUSEProduct>, List<SUSEProductExtension>> allSUSEProdExt =
+                SUSEProductFactory.findAllSUSEProductExtensions().stream()
+                        .collect(Collectors.groupingBy(e -> new Tuple2<>(e.getRootProduct(), e.getBaseProduct())));
 
         Map<Tuple2<SUSEProduct, SUSEProduct>, List<ChannelTemplate>> entriesByProducts = allEntries.stream()
                 .collect(Collectors.groupingBy(e -> new Tuple2<>(e.getRootProduct(), e.getProduct())));
@@ -2111,7 +2122,7 @@ public class ContentSyncManager {
                 .filter(ChannelTemplate::isRoot)
                 .map(ChannelTemplate::getProduct)
                 .distinct()
-                .flatMap(p -> getAvailableChannelTemplates(p, p, entriesByProducts, repoIdsWithAuth))
+                .flatMap(p -> getAvailableChannelTemplates(p, p, entriesByProducts, repoIdsWithAuth, allSUSEProdExt))
                 .collect(Collectors.toList());
     }
 
