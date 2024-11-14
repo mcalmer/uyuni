@@ -24,6 +24,7 @@ import com.redhat.rhn.frontend.dto.ChannelOverview;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.hibernate.query.SelectionQuery;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -78,19 +79,18 @@ public class ChannelFamilyFactory extends HibernateFactory {
      * @return the ChannelFamily found
      */
     public static ChannelFamily lookupByLabel(String label, Org org) {
-        String sql =
-                "SELECT * FROM rhnChannelFamily WHERE label = :label AND (org = :org OR org IS NULL)";
-        TypedQuery<ChannelFamily> query =
-                getSession().createNativeQuery(sql, ChannelFamily.class);
+        String sql = "FROM ChannelFamily WHERE label = :label AND (org = :org OR org IS NULL)";
+        SelectionQuery<ChannelFamily> query = getSession().createSelectionQuery(sql, ChannelFamily.class);
         query.setParameter("label", label);
-        query.setParameter("org", org);
+        if (org != null) {
+            query.setParameter("org", org);
+        }
+
         try {
             return query.getSingleResult();
-        }
-        catch (NoResultException e) {
+        } catch (NoResultException e) {
             return null;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Error retrieving ChannelFamily", e);
         }
     }
