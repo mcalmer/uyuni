@@ -310,6 +310,7 @@ public class ChannelFactory extends HibernateFactory {
         Map<String, Object> inParams = new HashMap<>();
         inParams.put("cid", c.getId());
 
+        getSession().flush();
         m.execute(inParams, new HashMap<>());
     }
 
@@ -385,7 +386,21 @@ public class ChannelFactory extends HibernateFactory {
      * @return A list of Channel Objects.
      */
     public static List<Channel> getAccessibleChannelsByOrg(Long orgid) {
-        return singleton.listObjectsByNamedQuery("Org.accessibleChannels", Map.of(ORG_ID, orgid));
+        //return singleton.listObjectsByNamedQuery(, Map.of(ORG_ID, orgid));
+        /*
+        return getSession().createNamedQuery("Org.accessibleChannels", Channel.class)
+                .setParameter(ORG_ID, orgid)
+                .list();
+         */
+        return getSession().createNativeQuery("""
+                        SELECT  c.*, c_1_.original_id, 0 AS clazz_
+                          FROM  rhnChannel c
+                      LEFT JOIN rhnChannelCloned c_1_ ON c.id = c_1_.original_id
+                           JOIN rhnAvailableChannels cfp ON c.id = cfp.channel_id
+                          WHERE cfp.org_id = :org_id
+                      """, Channel.class)
+                .setParameter(ORG_ID, orgid)
+                .getResultList();
     }
 
     /**
@@ -410,6 +425,14 @@ public class ChannelFactory extends HibernateFactory {
     public static boolean isAccessibleBy(String channelLabel, Long orgId) {
         return (int)singleton.lookupObjectByNamedQuery("Channel.isAccessibleBy",
                 Map.of("channel_label", channelLabel, ORG_ID, orgId)) > 0;
+
+        /*
+        Integer o = (Integer)getSession().createNamedQuery("Channel.isAccessibleBy")
+                .setParameter("channel_label", channelLabel)
+                .setParameter(ORG_ID, orgId)
+                .uniqueResult();
+        return o > 0;
+        */
     }
 
     /**

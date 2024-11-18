@@ -70,6 +70,7 @@ public class ChannelFactoryTest extends RhnBaseTestCase {
         Channel c2 = ChannelFactory.lookupById(c.getId());
         assertEquals(c.getLabel(), c2.getLabel());
 
+        HibernateFactory.getSession().flush();
         Channel c3 = ChannelFactoryTest.createTestChannel(user);
         Long id = c3.getId();
         assertNotNull(c.getChannelArch());
