@@ -30,7 +30,6 @@ import org.hibernate.HibernateException;
 import org.hibernate.LockOptions;
 import org.hibernate.MappingException;
 import org.hibernate.Session;
-import org.hibernate.engine.spi.SessionImplementor;
 import org.hibernate.query.Query;
 
 import java.io.ByteArrayOutputStream;
