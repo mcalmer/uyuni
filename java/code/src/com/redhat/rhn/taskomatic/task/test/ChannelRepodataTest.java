@@ -100,8 +100,9 @@ public class ChannelRepodataTest extends JMockBaseTestCaseWithUser {
     }
 
     private static boolean isChannelProcessed(Channel channel) {
-        Integer items = (Integer) HibernateFactory.getSession()
-            .createNativeQuery("SELECT COUNT(*) AS count FROM rhnRepoRegenQueue WHERE channel_label = :label", Integer.class)
+        Integer items = HibernateFactory.getSession()
+            .createNativeQuery("SELECT COUNT(*) AS count FROM rhnRepoRegenQueue WHERE channel_label = :label",
+                    Integer.class)
             .setParameter("label", channel.getLabel())
             .getSingleResult();
 
