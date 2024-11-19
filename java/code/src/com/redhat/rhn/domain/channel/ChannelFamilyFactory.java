@@ -88,9 +88,11 @@ public class ChannelFamilyFactory extends HibernateFactory {
 
         try {
             return query.getSingleResult();
-        } catch (NoResultException e) {
+        }
+        catch (NoResultException e) {
             return null;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new RuntimeException("Error retrieving ChannelFamily", e);
         }
     }
