@@ -1146,7 +1146,7 @@ public class Channel extends BaseDomainHelper implements Comparable<Channel> {
     /**
      * @return the channels sync flag settings
      */
-    @Transient
+    @OneToOne(mappedBy = "channel", cascade = CascadeType.ALL, orphanRemoval = true)
     public ChannelSyncFlag getChannelSyncFlag() {
         if (channelSyncFlag == null) {
             channelSyncFlag = new ChannelSyncFlag();
