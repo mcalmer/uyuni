@@ -483,24 +483,24 @@ public class SUSEProductFactory extends HibernateFactory {
 
         StringBuilder sqlQuery = new StringBuilder("SELECT * FROM suseProducts WHERE LOWER(name) = :name");
 
-        if (imprecise || version == null) {
+        if (version == null) {
+            sqlQuery.append(" AND version is NULL");
+        }
+        else if (imprecise) {
             sqlQuery.append(" AND (version IS NULL OR LOWER(version) = :version)");
         }
-        if (!imprecise) {
+        else { // (!imprecise)
             sqlQuery.append(" AND LOWER(version) = :version");
         }
-        if (version == null) {
-            version = "";
-        }
 
-        if (imprecise || release == null) {
+        if (release == null) {
+            sqlQuery.append(" AND release is NULL");
+        }
+        else if (imprecise) {
             sqlQuery.append(" AND (release IS NULL OR LOWER(release) = :release)");
         }
-        if (!imprecise) {
+        else { // (!imprecise)
             sqlQuery.append(" AND LOWER(release) = :release");
-        }
-        if (release == null) {
-            release = "";
         }
 
         PackageArch parch = PackageFactory.lookupPackageArchByLabel(arch);
@@ -521,9 +521,13 @@ public class SUSEProductFactory extends HibernateFactory {
         // Execute the query
         Query query = getSession().createNativeQuery(sqlQuery.toString(), SUSEProduct.class)
                 .setParameter("name", name.toLowerCase(), StringType.INSTANCE)
-                .setParameter("version", version.toLowerCase(), StringType.INSTANCE)
-                .setParameter("release", release.toLowerCase(), StringType.INSTANCE)
                 .setParameter("arch", archTypeId, LongType.INSTANCE);
+        if (version != null) {
+            query.setParameter("version", version.toLowerCase(), StringType.INSTANCE);
+        }
+        if (release != null) {
+            query.setParameter("release", release.toLowerCase(), StringType.INSTANCE);
+        }
 
 
         List<SUSEProduct> result = query.getResultList();
