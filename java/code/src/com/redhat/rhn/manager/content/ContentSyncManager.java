@@ -158,11 +158,13 @@ public class ContentSyncManager {
 
     private Optional<File> sumaProductTreeJson = Optional.empty();
 
-    private CloudPaygManager cloudPaygManager;
-
-    private static final HubFactory hubFactory = new HubFactory();
+    private final CloudPaygManager cloudPaygManager;
 
     private final Path tmpLoggingDir;
+
+    private final HubFactory hubFactory;
+    private final boolean isPeripheral;
+    private final boolean hasHubSingedMetadata;
 
     /**
      * Default constructor.
@@ -178,6 +180,10 @@ public class ContentSyncManager {
     public ContentSyncManager(Path tmpLogDir, CloudPaygManager paygMgrIn) {
         cloudPaygManager = paygMgrIn;
         tmpLoggingDir = tmpLogDir;
+        hubFactory = new HubFactory();
+        Optional<IssHub> issHub = hubFactory.lookupIssHub();
+        isPeripheral = issHub.isPresent();
+        hasHubSingedMetadata = StringUtils.isNotBlank(issHub.map(IssHub::getGpgKey).orElse(""));
     }
 
     /**
@@ -321,7 +327,7 @@ public class ContentSyncManager {
      *  - the additional_products.json which contains fake products which may also contain
      *    additional fake repositories.
      */
-    private static List<SCCRepositoryJson> getAdditionalRepositories() {
+    private List<SCCRepositoryJson> getAdditionalRepositories() {
         Gson gson = new GsonBuilder().create();
         List<SCCRepositoryJson> repos = new ArrayList<>();
         try {
@@ -339,7 +345,7 @@ public class ContentSyncManager {
     /*
      * Return static list or OES products
      */
-    private static List<SCCProductJson> getAdditionalProducts() {
+    private List<SCCProductJson> getAdditionalProducts() {
         Gson gson = new GsonBuilder().create();
         List<SCCProductJson> additionalProducts = new ArrayList<>();
         try {
@@ -1052,6 +1058,7 @@ public class ContentSyncManager {
     private void generatePtfChannels(List<SCCRepositoryJson> repositories) {
         List<SCCRepository> reposToSave = new ArrayList<>();
         List<ChannelTemplate> templatesToSave = new ArrayList<>();
+
         for (SCCRepositoryJson jRepo : repositories) {
             PtfProductRepositoryInfo ptfInfo = parsePtfInfoFromUrl(jRepo);
             if (ptfInfo == null) {
@@ -1076,7 +1083,7 @@ public class ContentSyncManager {
         templatesToSave.forEach(SUSEProductFactory::save);
     }
 
-    private static PtfProductRepositoryInfo parsePtfInfoFromUrl(SCCRepositoryJson jrepo) {
+    private PtfProductRepositoryInfo parsePtfInfoFromUrl(SCCRepositoryJson jrepo) {
         URI uri;
 
         try {
@@ -1096,7 +1103,7 @@ public class ContentSyncManager {
         String archStr = prdArch.equals("amd64") ? prdArch + "-deb" : prdArch;
 
         SCCRepository repo = new SCCRepository();
-        repo.setSigned(true);
+        repo.setSigned(!isPeripheral || hasHubSingedMetadata);
         repo.update(jrepo);
 
         SUSEProduct product = SUSEProductFactory.findSUSEProduct(parts[4], parts[5], null, archStr, false);
@@ -1122,7 +1129,7 @@ public class ContentSyncManager {
         return new PtfProductRepositoryInfo(product, repo, channelParts, prdArch);
     }
 
-    private static ChannelTemplate convertToChannelTemplate(SUSEProduct root, PtfProductRepositoryInfo ptfInfo) {
+    private ChannelTemplate convertToChannelTemplate(SUSEProduct root, PtfProductRepositoryInfo ptfInfo) {
         ChannelTemplate template = new ChannelTemplate();
 
         template.setProduct(ptfInfo.getProduct());
@@ -1579,9 +1586,9 @@ public class ContentSyncManager {
      * @param packageArchMap lookup map for package archs
      * @return the updated product
      */
-    public static SUSEProduct updateProduct(SCCProductJson p, SUSEProduct product,
-                                            Map<String, ChannelFamily> channelFamilyByLabel,
-                                            Map<String, PackageArch> packageArchMap) {
+    public SUSEProduct updateProduct(SCCProductJson p, SUSEProduct product,
+                                     Map<String, ChannelFamily> channelFamilyByLabel,
+                                     Map<String, PackageArch> packageArchMap) {
         // it is not guaranteed for this ID to be stable in time, as it
         // depends on IBS
         product.setProductId(p.getId());
@@ -1619,8 +1626,8 @@ public class ContentSyncManager {
      * @param packageArchMap lookup map for package arch by label
      * @return the new product
      */
-    public static SUSEProduct createNewProduct(SCCProductJson p, Map<String, ChannelFamily> channelFamilyMap,
-                                               Map<String, PackageArch> packageArchMap) {
+    public SUSEProduct createNewProduct(SCCProductJson p, Map<String, ChannelFamily> channelFamilyMap,
+                                        Map<String, PackageArch> packageArchMap) {
         // Otherwise create a new SUSE product and save it
         SUSEProduct product = new SUSEProduct();
 
@@ -1716,8 +1723,8 @@ public class ContentSyncManager {
         return products.stream().flatMap(p -> p.getRepositories().stream()).toList();
     }
 
-    private static <T> Map<Long, T> productAttributeOverride(List<ProductTreeEntry> tree,
-                                                             Function<ProductTreeEntry, T> attrGetter) {
+    private <T> Map<Long, T> productAttributeOverride(List<ProductTreeEntry> tree,
+                                                      Function<ProductTreeEntry, T> attrGetter) {
         return tree.stream()
                 .collect(Collectors.groupingBy(
                         ProductTreeEntry::getProductId, Collectors.mapping(
@@ -1738,7 +1745,7 @@ public class ContentSyncManager {
                 })).entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static List<SCCProductJson> overrideProductAttributes(
+    private List<SCCProductJson> overrideProductAttributes(
             List<SCCProductJson> jsonProducts, List<ProductTreeEntry> tree) {
         Map<Long, Optional<ProductType>> productTypeById = productAttributeOverride(
                 tree, ProductTreeEntry::getProductType);
@@ -1774,8 +1781,8 @@ public class ContentSyncManager {
      * @param reposById map of scc repositories by id
      * @param tree the static suse product tree
      */
-    public static void updateProducts(Map<Long, SCCProductJson> productsById, Map<Long, SCCRepositoryJson> reposById,
-                                      List<ProductTreeEntry> tree) {
+    public void updateProducts(Map<Long, SCCProductJson> productsById, Map<Long, SCCRepositoryJson> reposById,
+                               List<ProductTreeEntry> tree) {
         Map<String, PackageArch> packageArchMap = PackageFactory.lookupPackageArch()
                 .stream().collect(Collectors.toMap(PackageArch::getLabel, a -> a));
         Map<String, ChannelFamily> channelFamilyMap = ChannelFamilyFactory.getAllChannelFamilies()
@@ -1886,7 +1893,7 @@ public class ContentSyncManager {
                 ChannelTemplate template = Opt.fold(Optional.ofNullable(dbChannelTemplatesByIds.get(ids)),
                         () -> {
                             SCCRepository repo = repoMap.get(repoJson.getSCCId());
-                            repo.setSigned(entry.isSigned());
+                            repo.setSigned(isPeripheral ? hasHubSingedMetadata : entry.isSigned());
 
                             ChannelTemplate channelTemplate = new ChannelTemplate();
                             channelTemplate.setUpdateTag(entry.getUpdateTag().orElse(null));
@@ -1940,7 +1947,8 @@ public class ContentSyncManager {
                             // Allowed to change also in released stage
                             channelTemplate.setChannelName(entry.getChannelName());
                             channelTemplate.setMandatory(entry.isMandatory());
-                            channelTemplate.getRepository().setSigned(entry.isSigned());
+                            channelTemplate.getRepository().setSigned(
+                                    isPeripheral ? hasHubSingedMetadata : entry.isSigned());
                             if (!entry.getGpgInfo().isEmpty()) {
                                 channelTemplate.setGpgKeyUrl(entry.getGpgInfo()
                                         .stream().map(GpgInfoEntry::getUrl).collect(Collectors.joining(" ")));
@@ -2090,7 +2098,7 @@ public class ContentSyncManager {
     private static boolean isChannelAccessible(ChannelTemplate template) {
         boolean isPublic = template.getProduct().getChannelFamily().isPublic();
         boolean isAvailable = ChannelFactory.lookupByLabel(template.getChannelLabel()) != null;
-        boolean isISSSlave = IssFactory.getCurrentMaster() != null || hubFactory.isISSPeripheral();
+        boolean isISSSlave = IssFactory.getCurrentMaster() != null || new HubFactory().isISSPeripheral();
         boolean isMirrorable = false;
         if (!isISSSlave) {
             isMirrorable = template.getRepository().isAccessible();
@@ -2283,7 +2291,7 @@ public class ContentSyncManager {
      * Update Channel database object with new data from SCC.
      * @param dbChannel channel to update
      */
-    public static void updateChannel(Channel dbChannel) {
+    public void updateChannel(Channel dbChannel) {
         if (dbChannel == null) {
             LOG.error("Channel does not exist");
             return;
@@ -2439,7 +2447,7 @@ public class ContentSyncManager {
      * @param s string to check if it represents a system entitlement
      * @return true if s is a system entitlement, else false.
      */
-    private static boolean isEntitlement(String s) {
+    private boolean isEntitlement(String s) {
         for (SystemEntitlement ent : SystemEntitlement.values()) {
             if (ent.name().equals(s)) {
                 return true;
@@ -2470,7 +2478,7 @@ public class ContentSyncManager {
      * family exists with the given label.
      * @return {@link ChannelFamily}
      */
-    private static ChannelFamily createOrUpdateChannelFamily(String label, String name,
+    private ChannelFamily createOrUpdateChannelFamily(String label, String name,
                                                              Map<String, ChannelFamily> channelFamilyByLabel) {
         ChannelFamily family = Optional.ofNullable(channelFamilyByLabel).orElse(new HashMap<>()).get(label);
         if (family == null) {
