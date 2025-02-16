@@ -70,6 +70,8 @@ public class RMTContentSyncSource implements ContentSyncSource {
 
             SCCConfig config = new SCCConfigBuilder()
                     .setUrl(url)
+                    .setUsername(credentials.getUsername())
+                    .setPassword(credentials.getPassword())
                     .setUuid(uuid)
                     .setLoggingDir(loggingDir.toAbsolutePath().toString())
                     .setSkipOwner(false)
