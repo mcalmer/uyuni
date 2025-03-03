@@ -308,14 +308,8 @@ public class HubController {
             return badRequest(response, "Invalid data: invalid channels list");
         }
 
-        List<ChannelInfoJson> createdChannelsInfoList =
-                hubManager.syncChannels(token, channelInfoList)
-                        .stream()
-                        .map(ch -> new ChannelInfoJson(ch.getId(), ch.getName(), ch.getLabel(), ch.getSummary(),
-                                ((null == ch.getOrg()) ? null : ch.getOrg().getId()),
-                                (null == ch.getParentChannel()) ? null : ch.getParentChannel().getId()))
-                        .toList();
-        return success(response, createdChannelsInfoList);
+        hubManager.syncChannels(token, channelInfoList);
+        return success(response);
     }
 
     private String synchronizeChannelFamilies(Request request, Response response, IssAccessToken token) {
