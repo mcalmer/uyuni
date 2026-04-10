@@ -1448,6 +1448,14 @@ CLIENT_TOOLS_DEPENDENCIES_BY_BASE_CHANNEL = {
     libgomp1
     python313-resolvelib
     librpmbuild10
+    python313-defusedxml
+    python313-pyOpenSSL
+    python313-cffi
+    python313-cryptography
+    python313-pycparser
+    python313-bcrypt
+    glibc-locale
+    glibc-locale-base
   ]
 }.freeze
 
