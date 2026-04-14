@@ -13,7 +13,7 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 #v5.0.0
 
-      - uses: ruby/setup-ruby@8aeb6ff8030dd539317f8e1769a044873b56ea71 #v1.268.0
+      - uses: ruby/setup-ruby@e65c17d16e57e481586a6a5a0282698790062f92 #v1.300.0
         with:
           ruby-version: '3.3'
       - id: files
