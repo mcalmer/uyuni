@@ -167,7 +167,7 @@ When(/^I use spacewalk-common-channel to add channel "([^"]*)" with arch "([^"]*
     channel_label = "#{child_channel}-#{arch}"
     steps %(
       When I kill running spacewalk-repo-sync for "#{channel_label}" channel
-      When I use spacewalk-repo-sync to sync channel "#{channel_label}"
+      And I use spacewalk-repo-sync to sync channel "#{channel_label}"
     )
   end
 end
@@ -186,7 +186,7 @@ When(/^I use spacewalk-common-channel to add all "([^"]*)" channels with arch "(
       # The URL of the repo has been bypassed. We must kill running reposync and trigger it again
       steps %(
         When I kill running spacewalk-repo-sync for "#{os_product_version_channel}" channel
-        When I use spacewalk-repo-sync to sync channel "#{os_product_version_channel}"
+        And I use spacewalk-repo-sync to sync channel "#{os_product_version_channel}"
       )
     end
   end
