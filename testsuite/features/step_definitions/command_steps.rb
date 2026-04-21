@@ -165,10 +165,8 @@ When(/^I use spacewalk-common-channel to add channel "([^"]*)" with arch "([^"]*
   if product_version_full == 'uyuni-main' && bypass_channel_repo_if_needed("#{child_channel}-#{arch}")
     # The URL of the repo has been bypassed. We must kill running reposync and trigger it again
     channel_label = "#{child_channel}-#{arch}"
-    steps %(
-      When I kill running spacewalk-repo-sync for "#{channel_label}" channel
-      And I use spacewalk-repo-sync to sync channel "#{channel_label}"
-    )
+    kill_reposync_for_channel(channel_label)
+    get_target('server').run("spacewalk-repo-sync -c #{channel_label}", check_errors: false, verbose: true)
   end
 end
 
@@ -184,10 +182,8 @@ When(/^I use spacewalk-common-channel to add all "([^"]*)" channels with arch "(
     log "Channel #{os_product_version_channel} added"
     next unless product_version_full == 'uyuni-main' && bypass_channel_repo_if_needed(os_product_version_channel)
     # The URL of the repo has been bypassed. We must kill running reposync and trigger it again
-    steps %(
-      When I kill running spacewalk-repo-sync for "#{os_product_version_channel}" channel
-      And I use spacewalk-repo-sync to sync channel "#{os_product_version_channel}"
-    )
+    kill_reposync_for_channel(os_product_version_channel)
+    get_target('server').run("spacewalk-repo-sync -c #{os_product_version_channel}", check_errors: false, verbose: true)
   end
 end
 
@@ -394,25 +390,7 @@ When(/^I kill running spacewalk-repo-sync for "([^"]*)"$/) do |os_product_versio
 end
 
 When(/^I kill running spacewalk-repo-sync for "([^"]*)" channel$/) do |channel|
-  time_spent = 0
-  checking_rate = 5
-  repeat_until_timeout(timeout: 60, message: 'Some reposync processes were not killed properly', dont_raise: true) do
-    command_output, _code = get_target('server').run('ps axo pid,cmd | grep spacewalk-repo-sync | grep -v grep', verbose: true, check_errors: false)
-    process = command_output.split("\n")[0]
-    channel_synchronizing = process.split[5].strip
-    if process.nil?
-      log "#{time_spent / 60} minutes waiting for '#{channel}' channel to start its repo-sync processes." if ((time_spent += checking_rate) % 60).zero?
-      sleep checking_rate
-      next
-    elsif channel_synchronizing == channel
-      pid = process.split[0]
-      get_target('server').run("kill #{pid}", verbose: true, check_errors: false)
-      log "Reposync of channel #{channel} killed"
-      break
-    else
-      log "Warning: Repo-sync process for channel '#{channel_synchronizing}' running."
-    end
-  end
+  kill_reposync_for_channel(channel)
 end
 
 Then(/^the reposync logs should not report errors$/) do

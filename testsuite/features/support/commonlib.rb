@@ -349,6 +349,31 @@ def generate_repository_name(repo_url)
   repo_name[0...64] # HACK: Due to the 64 characters size limit of a repository label
 end
 
+# Kill spacewalk-repo-sync execution for a given channel
+#
+# @param channel [String] The channel label of the channel to kill reposync execution
+def kill_reposync_for_channel(channel)
+  time_spent = 0
+  checking_rate = 5
+  repeat_until_timeout(timeout: 60, message: 'Some reposync processes were not killed properly', dont_raise: true) do
+    command_output, _code = get_target('server').run('ps axo pid,cmd | grep spacewalk-repo-sync | grep -v grep', verbose: true, check_errors: false)
+    process = command_output.split("\n")[0]
+    channel_synchronizing = process.split[5].strip
+    if process.nil?
+      log "#{time_spent / 60} minutes waiting for '#{channel}' channel to start its repo-sync processes." if ((time_spent += checking_rate) % 60).zero?
+      sleep checking_rate
+      next
+    elsif channel_synchronizing == channel
+      pid = process.split[0]
+      get_target('server').run("kill #{pid}", verbose: true, check_errors: false)
+      log "Reposync of channel #{channel} killed"
+      break
+    else
+      log "Warning: Repo-sync process for channel '#{channel_synchronizing}' running."
+    end
+  end
+end
+
 # Update the URL for a given repository
 #
 # @param repo [String] The name of the repository to update
