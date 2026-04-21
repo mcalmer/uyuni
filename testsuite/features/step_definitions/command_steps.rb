@@ -182,7 +182,7 @@ When(/^I use spacewalk-common-channel to add all "([^"]*)" channels with arch "(
     command = "spacewalk-common-channels -u admin -p admin -a #{architecture} #{os_product_version_channel.gsub("-#{architecture}", '')}"
     get_target('server').run(command, verbose: true)
     log "Channel #{os_product_version_channel} added"
-    if product_version_full == 'uyuni-main' && bypass_channel_repo_if_needed("#{os_product_version_channel}")
+    if product_version_full == 'uyuni-main' && bypass_channel_repo_if_needed(os_product_version_channel)
       # The URL of the repo has been bypassed. We must kill running reposync and trigger it again
       steps %(
         When I kill running spacewalk-repo-sync for "#{os_product_version_channel}" channel
