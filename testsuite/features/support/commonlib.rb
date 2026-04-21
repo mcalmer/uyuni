@@ -349,6 +349,31 @@ def generate_repository_name(repo_url)
   repo_name[0...64] # HACK: Due to the 64 characters size limit of a repository label
 end
 
+# Update the URL for a given repository
+#
+# @param repo [String] The name of the repository to update
+# @param url [String] The new URL to set for this repository
+def update_repository_url(repo, url)
+  get_target('server').run("spacecmd -u admin -p admin repo_updateurl \"#{repo}\" #{url}", check_errors: false)
+end
+
+# Check whether a bypass of the repository URL is needed for the given channel
+# in case of running tests for uyuni-main
+#
+# @param channel_label [String] The label of the channel to check
+# @return [Boolean, nil] Return true if repo has been updated
+def bypass_channel_repo_if_needed(channel_label)
+  return unless UYUNI_MAIN_REPO_URL_BYPASS.key?(channel_label)
+  return unless product_version_full == 'uyuni-main'
+
+  log "The repo URL for channel #{channel_label} must be bypassed for Uyuni:Main"
+  repo, code = get_target('server').run("spacecmd -q -u admin -p admin softwarechannel_listrepos #{channel_label}", check_errors: true)
+  bypass_url = UYUNI_MAIN_REPO_URL_BYPASS[channel_label]
+  update_repository_url(repo.strip, bypass_url)
+  log "Bypassed repo URL for channel #{channel_label} to #{bypass_url}"
+  return true
+end
+
 #
 # Extracts logs from a given node.
 #
