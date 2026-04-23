@@ -732,7 +732,18 @@ def channel_packages_are_downloaded?(channel_name)
     return true if $custom_repositories[client].nil? && client != 'monitoring_server'
   end
   log_tmp_file = '/tmp/reposync.log'
-  get_target('server').extract('/var/log/rhn/reposync.log', log_tmp_file)
+  # Copy reposync logs to /tmp/ to prevent race condition and error when calling .extract()
+  # if the reposync log file is being updated during the underlying "mgrctl cp" call:
+  #
+  # https://github.com/uyuni-project/uyuni-tools/issues/772
+  #
+  # INF Starting mgrctl cp server:/var/log/rhn/reposync.log /tmp/reposync.log
+  # INF Error: 1 error occurred:
+  #  * copying from container: copier: get: "/var/log/rhn/reposync.log": copying /var/log/rhn/reposync.log: archive/tar: write too long
+  # (ScriptError)
+  #
+  get_target('server').run('cp /var/log/rhn/reposync.log /tmp/testsuite_reposync_check.log')
+  get_target('server').extract('/tmp/testsuite_reposync_check.log', log_tmp_file)
   unless File.exist?(log_tmp_file) && !File.empty?(log_tmp_file)
     log "DEBUG: Log file #{log_tmp_file} is missing or empty."
     return false
