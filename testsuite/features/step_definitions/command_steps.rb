@@ -166,7 +166,7 @@ When(/^I use spacewalk-common-channel to add channel "([^"]*)" with arch "([^"]*
     # The URL of the repo has been bypassed. We must kill running reposync and trigger it again
     channel_label = "#{child_channel}-#{arch}"
     kill_reposync_for_channel(channel_label)
-    get_target('server').run("spacecmd -u admin -p admin softwarechannel_syncrepos #{channel_label}")
+    get_target('server').run("spacecmd -u admin -p admin softwarechannel_syncrepos #{channel_label}", check_errors: false, verbose: true)
   end
 end
 
@@ -183,7 +183,7 @@ When(/^I use spacewalk-common-channel to add all "([^"]*)" channels with arch "(
     next unless product_version_full == 'uyuni-main' && bypass_channel_repo_if_needed(os_product_version_channel)
     # The URL of the repo has been bypassed. We must kill running reposync and trigger it again
     kill_reposync_for_channel(os_product_version_channel)
-    get_target('server').run("spacecmd -u admin -p admin softwarechannel_syncrepos #{os_product_version_channel}")
+    get_target('server').run("spacecmd -u admin -p admin softwarechannel_syncrepos #{os_product_version_channel}", check_errors: false, verbose: true)
   end
 end
 
