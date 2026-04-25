@@ -12,15 +12,23 @@
 -- Migration: Add scap_content_id and tailoring_file_id to rhnActionScap
 -- This enables per-ID directory file resolution for both policy-based and one-off scans
 
+-- Fix constraint name from previous migration in case someone already migrated it in test instance
+ALTER TABLE rhnActionScap DROP CONSTRAINT IF EXISTS fk_scap_policy;
+ALTER TABLE rhnActionScap DROP CONSTRAINT IF EXISTS rhn_act_scap_policy_fk;
+
+ALTER TABLE rhnActionScap ADD CONSTRAINT rhn_act_scap_policy_fk
+    FOREIGN KEY (scap_policy_id) REFERENCES suseScapPolicy(id) ON DELETE SET NULL;
+
+-- Add new columns
 ALTER TABLE rhnActionScap
 ADD COLUMN IF NOT EXISTS scap_content_id BIGINT
-CONSTRAINT fk_scap_content
+CONSTRAINT rhn_act_scap_content_fk
 REFERENCES suseScapContent(id)
 ON DELETE SET NULL;
 
 ALTER TABLE rhnActionScap
 ADD COLUMN IF NOT EXISTS tailoring_file_id BIGINT
-CONSTRAINT fk_tailoring_file
+CONSTRAINT rhn_act_scap_tailoring_fk
 REFERENCES suseScapTailoringFile(id)
 ON DELETE SET NULL;
 
