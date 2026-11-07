@@ -56,7 +56,8 @@ public class RhnConfiguration extends BaseDomainHelper {
         USER_LOGIN_LENGTH_MAX,
         USER_EMAIL_LENGTH_MAX,
         SCC_URL,
-        SCC_FORWARD_REGISTRATION;
+        SCC_FORWARD_REGISTRATION,
+        SCC_REG_ERROR_EXPIRE_TIME;
     }
 
     @Id
